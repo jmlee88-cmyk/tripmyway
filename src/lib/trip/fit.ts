@@ -47,19 +47,21 @@ export interface FitOptions {
 /** Effective zoom = framing zoom + this. */
 const FRAMING_OFFSET = effectiveZoom(0);
 
-export function fitStops(
+/**
+ * Frame points in a map window `mapIn` inches across, drawn (like every map)
+ * on a DESIGN_WIDTH-wide canvas. Keeps `padding` (fraction of each side) free.
+ * Used for trip panels and for the small whole-trip overview.
+ */
+export function frameInWindow(
   points: LngLat[],
-  size: Pick<PrintSize, "widthIn" | "heightIn">,
-  styleId: string,
-  opts: FitOptions = {},
-): PanelFit {
+  mapIn: { w: number; h: number },
+  padding: number,
+  maxZoom = effectiveZoom(TRIP.maxFramingZoom),
+) {
   if (points.length === 0) throw new RangeError("A map needs at least one stop.");
-  const rect = tripMapRect(posterHeight(size.widthIn, size.heightIn));
   const W = DESIGN_WIDTH;
-  const H = (DESIGN_WIDTH * rect.height) / rect.width;
-  const mapIn = { w: cqwToIn(rect.width, size.widthIn), h: cqwToIn(rect.height, size.widthIn) };
+  const H = (DESIGN_WIDTH * mapIn.h) / mapIn.w;
   const inPerPx = mapIn.w / W;
-
   const lngs = unwrapLongitudes(points.map((p) => p.lng));
   const world = points.map((p, i) => toWorld0(lngs[i]!, p.lat));
   const xs = world.map((w) => w.x);
@@ -70,15 +72,9 @@ export function fitStops(
     maxY = Math.max(...ys);
   const dx = maxX - minX,
     dy = maxY - minY;
-
-  const usableW = W * (1 - 2 * TRIP_LAYOUT.fitPadding);
-  const usableH = H * (1 - 2 * TRIP_LAYOUT.fitPadding);
-  const maxZoom = effectiveZoom(TRIP.maxFramingZoom);
-  const zx = dx > 0 ? Math.log2(usableW / dx) : Infinity;
-  const zy = dy > 0 ? Math.log2(usableH / dy) : Infinity;
+  const zx = dx > 0 ? Math.log2((W * (1 - 2 * padding)) / dx) : Infinity;
+  const zy = dy > 0 ? Math.log2((H * (1 - 2 * padding)) / dy) : Infinity;
   const zoom = Math.min(zx, zy, maxZoom);
-  const framingZoom = zoom - FRAMING_OFFSET;
-
   const cx = (minX + maxX) / 2,
     cy = (minY + maxY) / 2;
   const scale = 2 ** zoom;
@@ -86,6 +82,22 @@ export function fitStops(
     x: mapIn.w / 2 + (w.x - cx) * scale * inPerPx,
     y: mapIn.h / 2 + (w.y - cy) * scale * inPerPx,
   }));
+  return { center: fromWorld0(cx, cy), zoom, framingZoom: zoom - FRAMING_OFFSET, positionsIn };
+}
+
+export function fitStops(
+  points: LngLat[],
+  size: Pick<PrintSize, "widthIn" | "heightIn">,
+  styleId: string,
+  opts: FitOptions = {},
+): PanelFit {
+  const rect = tripMapRect(posterHeight(size.widthIn, size.heightIn));
+  const mapIn = { w: cqwToIn(rect.width, size.widthIn), h: cqwToIn(rect.height, size.widthIn) };
+  const { center, zoom, framingZoom, positionsIn } = frameInWindow(
+    points,
+    mapIn,
+    TRIP_LAYOUT.fitPadding,
+  );
 
   let minSeparationIn = Infinity;
   for (let i = 0; i < positionsIn.length; i++)
@@ -96,15 +108,7 @@ export function fitStops(
       );
 
   const markerIn = tripMarkerIn(size.widthIn);
-  const base = {
-    center: fromWorld0(cx, cy),
-    framingZoom,
-    zoom,
-    mapIn,
-    positionsIn,
-    minSeparationIn,
-    markerIn,
-  };
+  const base = { center, framingZoom, zoom, mapIn, positionsIn, minSeparationIn, markerIn };
 
   const problems: FitProblem[] = [];
   if (!opts.ignoreMinZoom && framingZoom < minFramingZoomFor(styleId) - 1e-9)

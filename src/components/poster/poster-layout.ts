@@ -153,6 +153,32 @@ export const TRIP_LAYOUT = {
   leaderGap: 1.2,
   /** Kept clear round every photo and name: of the route, markers and other photos. */
   clearance: 1,
+
+  route: { width: 0.42 },
+  /** Dotted leader from marker to photo: round dots `width` wide, `gap` apart. */
+  leader: { width: 0.22, gap: 0.75 },
+  /** Stop number inside its marker, as a share of the marker's diameter. */
+  number: { size: 0.52 },
+
+  /** Text band below the map (centred), all in cqw. */
+  text: {
+    title: { size: 6.4, lineHeight: 1.1, tracking: 0.04 },
+    line: { size: 1.9, lineHeight: 1.4, tracking: 0.14, marginTop: 2.2 },
+    /** Break marks on split prints, at the inner bottom corners. */
+    breakMark: { size: 1.45, tracking: 0.1, fromBottom: 4.6 },
+  },
+
+  /** Whole-trip overview on split prints: top-left of the map window. */
+  overview: {
+    width: 30,
+    height: 20,
+    inset: 2,
+    border: 0.15,
+    padding: 0.18,
+    dot: 0.8,
+    route: 0.3,
+    label: { size: 1.15, tracking: 0.12, pad: 1.2 },
+  },
 } as const;
 
 export function cqwToIn(cqw: number, widthIn: number) {

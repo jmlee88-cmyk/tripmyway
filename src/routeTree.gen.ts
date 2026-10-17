@@ -19,6 +19,7 @@ import { Route as PreviewsFileRouteImport } from './routes/previews.$file'
 import { Route as StudioPrintRouteImport } from './routes/studio.print'
 import { Route as StylesIndexRouteImport } from './routes/styles.index'
 import { Route as StylesStyleIdRouteImport } from './routes/styles.$styleId'
+import { Route as TripPreviewRouteImport } from './routes/trip.preview'
 import { Route as ApiPreviewsKeyRouteImport } from './routes/api.previews.$key'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,6 +72,11 @@ const StylesStyleIdRoute = StylesStyleIdRouteImport.update({
   path: '/styles/$styleId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TripPreviewRoute = TripPreviewRouteImport.update({
+  id: '/trip/preview',
+  path: '/trip/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPreviewsKeyRoute = ApiPreviewsKeyRouteImport.update({
   id: '/api/previews/$key',
   path: '/api/previews/$key',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/previews/$file': typeof PreviewsFileRoute
   '/studio/print': typeof StudioPrintRoute
   '/styles/$styleId': typeof StylesStyleIdRoute
+  '/trip/preview': typeof TripPreviewRoute
   '/styles/': typeof StylesIndexRoute
   '/api/previews/$key': typeof ApiPreviewsKeyRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/previews/$file': typeof PreviewsFileRoute
   '/studio/print': typeof StudioPrintRoute
   '/styles/$styleId': typeof StylesStyleIdRoute
+  '/trip/preview': typeof TripPreviewRoute
   '/styles': typeof StylesIndexRoute
   '/api/previews/$key': typeof ApiPreviewsKeyRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/previews/$file': typeof PreviewsFileRoute
   '/studio/print': typeof StudioPrintRoute
   '/styles/$styleId': typeof StylesStyleIdRoute
+  '/trip/preview': typeof TripPreviewRoute
   '/styles/': typeof StylesIndexRoute
   '/api/previews/$key': typeof ApiPreviewsKeyRoute
 }
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/previews/$file'
     | '/studio/print'
     | '/styles/$styleId'
+    | '/trip/preview'
     | '/styles/'
     | '/api/previews/$key'
   fileRoutesByTo: FileRoutesByTo
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/previews/$file'
     | '/studio/print'
     | '/styles/$styleId'
+    | '/trip/preview'
     | '/styles'
     | '/api/previews/$key'
   id:
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/previews/$file'
     | '/studio/print'
     | '/styles/$styleId'
+    | '/trip/preview'
     | '/styles/'
     | '/api/previews/$key'
   fileRoutesById: FileRoutesById
@@ -169,6 +181,7 @@ export interface RootRouteChildren {
   PreviewsFileRoute: typeof PreviewsFileRoute
   StudioPrintRoute: typeof StudioPrintRoute
   StylesStyleIdRoute: typeof StylesStyleIdRoute
+  TripPreviewRoute: typeof TripPreviewRoute
   StylesIndexRoute: typeof StylesIndexRoute
   ApiPreviewsKeyRoute: typeof ApiPreviewsKeyRoute
 }
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StylesStyleIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trip/preview': {
+      id: '/trip/preview'
+      path: '/trip/preview'
+      fullPath: '/trip/preview'
+      preLoaderRoute: typeof TripPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/previews/$key': {
       id: '/api/previews/$key'
       path: '/api/previews/$key'
@@ -265,6 +285,7 @@ const rootRouteChildren: RootRouteChildren = {
   PreviewsFileRoute: PreviewsFileRoute,
   StudioPrintRoute: StudioPrintRoute,
   StylesStyleIdRoute: StylesStyleIdRoute,
+  TripPreviewRoute: TripPreviewRoute,
   StylesIndexRoute: StylesIndexRoute,
   ApiPreviewsKeyRoute: ApiPreviewsKeyRoute,
 }

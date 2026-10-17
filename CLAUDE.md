@@ -141,6 +141,20 @@ them **alongside** the existing code, without changing how single prints behave:
     Leaders may cross the route only when no clear spot exists (scored, not forbidden).
     Stops without a photo get just their name beside the marker.
   - Circle size scales with print size (all geometry in `poster-layout.ts`, % of width).
+- **Trip print renderer and preview page: built** (Oct 17 2026).
+  - `src/print/render-trip-pdf.ts`: one PDF page per print, reusing the single-print
+    renderer's tiles, map styles and fonts (its helpers are now exported; single prints
+    unchanged). Draws route, numbered markers, photos in ringed circles, names, title,
+    trip line, break marks, the whole-trip overview, and the OSM credit.
+  - `/trip/preview` (`src/routes/trip.preview.tsx`, noindex): sample trips
+    (`config/trip-samples.ts`), size/style pickers, your own photos per stop, and the real
+    PDF rendered on screen; warns when a photo is under 150 px per printed inch.
+  - Checked on real coastlines (Natural Earth) before shipping; the live tile server is
+    not reachable from Claude's workspace, so real-map review happens on a deployed site.
+  - Known gaps: crowded prints fall back to names only (the photo strip isn't drawn yet);
+    no canvas gallery wrap for trips yet; the inherited Atlas styles show no country
+    borders or rivers at trip scale (TripMyWay print theme should add them); print
+    fonts lack → ← ≈, so the text falls back to words ("Milan to Amalfi", "about 8,300 km").
 - **Split trips look like the split mockup** (decided Oct 17 2026): one print per leg,
   stops numbered across the whole trip, "Part N of M" in the trip line, the break mark
   at the inner edges ("Pacific Ocean · ≈ 8,300 km →" / "← From San Francisco"), and the

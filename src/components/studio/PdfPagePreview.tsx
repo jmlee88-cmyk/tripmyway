@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Renders page 1 of a PDF onto a canvas at exactly `width`×`height` CSS px
+ * Renders one page (page 1 unless `page` says otherwise) of a PDF onto a canvas at exactly `width`×`height` CSS px
  * (at device resolution). Unlike the browser's PDF viewer in an iframe there is
  * no viewer chrome, zoom or scrollbars — the page is shown whole, 1:1 with the
  * print sheet preview beside it. pdf.js is loaded only when this mounts.
@@ -11,11 +11,14 @@ export function PdfPagePreview({
   width,
   height,
   className,
+  page: pageNumber = 1,
 }: {
   bytes: Uint8Array;
   width: number;
   height: number;
   className?: string;
+  /** 1-based page number. */
+  page?: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +37,7 @@ export function PdfPagePreview({
         const task = pdfjs.getDocument({ data: bytes.slice() });
         destroy = () => void task.destroy();
         const doc = await task.promise;
-        const page = await doc.getPage(1);
+        const page = await doc.getPage(pageNumber);
         if (cancelled || !canvasRef.current) return;
         const base = page.getViewport({ scale: 1 });
         const dpr = window.devicePixelRatio || 1;
@@ -52,7 +55,7 @@ export function PdfPagePreview({
       cancelled = true;
       destroy?.();
     };
-  }, [bytes, width]);
+  }, [bytes, width, pageNumber]);
 
   if (error) {
     return (

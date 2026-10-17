@@ -102,24 +102,24 @@ export interface RenderResult {
 
 export const PRINT_RENDERER_VERSION = "1";
 
-type Ops = PDFOperator[];
+export type Ops = PDFOperator[];
 
 /**
  * Appends without spreading. Dense cities produce hundreds of thousands of
  * path operators per tile, which overflows `push(...array)` argument limits.
  */
-function append(target: Ops, source: Ops) {
+export function append(target: Ops, source: Ops) {
   for (let i = 0; i < source.length; i++) target.push(source[i]!);
 }
 
 /** Writes operators to the page in bounded batches, for the same reason. */
-function flush(page: PDFPage, ops: Ops) {
+export function flush(page: PDFPage, ops: Ops) {
   const BATCH = 10_000;
   for (let i = 0; i < ops.length; i += BATCH) page.pushOperators(...ops.slice(i, i + BATCH));
   ops.length = 0;
 }
 
-function hexToRgb(hex: string) {
+export function hexToRgb(hex: string) {
   const h = hex.replace("#", "");
   const full =
     h.length === 3
@@ -132,13 +132,13 @@ function hexToRgb(hex: string) {
   return { r: ((n >> 16) & 255) / 255, g: ((n >> 8) & 255) / 255, b: (n & 255) / 255 };
 }
 
-function colorOps(hex: string, kind: "fill" | "stroke"): PDFOperator {
+export function colorOps(hex: string, kind: "fill" | "stroke"): PDFOperator {
   const { r, g, b } = hexToRgb(hex);
   return kind === "fill" ? setFillingRgbColor(r, g, b) : setStrokingRgbColor(r, g, b);
 }
 
 /** Registers (once per page) an ExtGState with the given opacity; returns its resource name. */
-function alphaState(page: PDFPage, cache: Map<number, PDFName>, alpha: number): PDFName {
+export function alphaState(page: PDFPage, cache: Map<number, PDFName>, alpha: number): PDFName {
   const key = Math.round(alpha * 1000) / 1000;
   let name = cache.get(key);
   if (!name) {
@@ -184,7 +184,7 @@ function evaluateProps(
   return out;
 }
 
-function compileLayers(layers: StyleLayer[], zoom: number): CompiledLayer[] {
+export function compileLayers(layers: StyleLayer[], zoom: number): CompiledLayer[] {
   const spec = latest as unknown as Record<string, Record<string, unknown>>;
   return layers.map((l, i) => {
     const layer = l as StyleLayer & {
@@ -236,14 +236,14 @@ function pathOps(
   }
 }
 
-interface PlacedTile {
+export interface PlacedTile {
   tile: VectorTile | null;
   ox: number;
   oy: number;
   size: number;
 }
 
-function drawMapLayers(
+export function drawMapLayers(
   page: PDFPage,
   alphaCache: Map<number, PDFName>,
   layers: CompiledLayer[],

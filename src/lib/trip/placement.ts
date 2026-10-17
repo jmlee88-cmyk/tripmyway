@@ -32,6 +32,8 @@ export interface PlacementInput {
   /** Print width, for converting layout sizes to inches. */
   widthIn: number;
   stops: { label: string; hasPhoto: boolean }[];
+  /** Areas photos and names must stay out of, e.g. the whole-trip overview inset. */
+  obstacles?: Box[];
 }
 
 export interface PlacedSlot {
@@ -115,7 +117,7 @@ function tryPlace(input: PlacementInput, photoIn: number): PlacedSlot[] | null {
             : null;
         const slot: PlacedSlot = { index: i, center: c, r, label, leader };
         if (!fitsInside(slot, bounds, clear)) continue;
-        if (collides(slot, i, pos, mR, route, placed, clear)) continue;
+        if (collides(slot, i, pos, mR, route, placed, clear, input.obstacles ?? [])) continue;
         const crossings = slot.leader
           ? route.filter(
               ([a, b]) => a !== m && b !== m && segsCross(slot.leader!.from, slot.leader!.to, a, b),
@@ -174,8 +176,14 @@ function collides(
   route: (readonly [Pt, Pt])[],
   placed: PlacedSlot[],
   clear: number,
+  obstacles: Box[],
 ) {
   const label = grow(s.label, clear);
+  for (const ob of obstacles) {
+    if (s.r > 0 && circleBox(s.center, s.r + clear, ob)) return true;
+    if (boxesOverlap(label, ob)) return true;
+    if (s.leader && segBox(s.leader.from, s.leader.to, ob)) return true;
+  }
   // Its own leader must not run through its own name (a photo straight above its marker).
   if (s.leader && segBox(s.leader.from, s.leader.to, s.label)) return true;
   for (let j = 0; j < pos.length; j++) {
