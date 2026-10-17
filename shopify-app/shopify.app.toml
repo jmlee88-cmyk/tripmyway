@@ -1,0 +1,20 @@
+# TripMyWay — a small private Shopify app that shows each customer's map
+# preview on the Thank-you and Order status pages (and in checkout on Plus).
+# `npx shopify app deploy` links this file to an app in your Shopify developer
+# account on first run (it fills in client_id).
+client_id = ""
+name = "TripMyWay Map Previews"
+application_url = "https://tripmyway.jerry-912.workers.dev"
+embedded = false
+
+[access_scopes]
+scopes = ""
+
+[auth]
+redirect_urls = ["https://tripmyway.jerry-912.workers.dev"]
+
+[webhooks]
+api_version = "2026-07"
+
+[build]
+include_config_on_deploy = true

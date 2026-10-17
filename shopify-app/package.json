@@ -1,0 +1,16 @@
+{
+  "name": "tripmyway-shopify-app",
+  "private": true,
+  "scripts": {
+    "deploy": "shopify app deploy",
+    "dev": "shopify app dev"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.11.3",
+    "@shopify/ui-extensions": "2026.7.0",
+    "preact": "^10.27.0"
+  },
+  "devDependencies": {
+    "@shopify/cli": "^4.9.3"
+  }
+}

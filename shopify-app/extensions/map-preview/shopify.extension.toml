@@ -1,0 +1,21 @@
+api_version = "2026-07"
+
+[[extensions]]
+name = "Map preview"
+handle = "map-preview"
+type = "ui_extension"
+
+# Under each item on the Thank-you page and the Order status page (all plans).
+[[extensions.targeting]]
+target = "purchase.thank-you.cart-line-item.render-after"
+module = "./src/LinePreview.jsx"
+
+[[extensions.targeting]]
+target = "customer-account.order-status.cart-line-item.render-after"
+module = "./src/LinePreview.jsx"
+
+# Under each item during checkout itself — Shopify only shows this on Plus
+# (and development) stores; elsewhere it is simply not displayed.
+[[extensions.targeting]]
+target = "purchase.checkout.cart-line-item.render-after"
+module = "./src/LinePreview.jsx"
