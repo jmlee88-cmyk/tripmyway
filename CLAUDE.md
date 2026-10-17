@@ -104,15 +104,25 @@ them **alongside** the existing code, without changing how single prints behave:
     never invents a split. Same pattern as the story AI: validated output only.
   - Diptych is a new format: add `"diptych"` to `PrintFormat` alongside `single` and
     `triptych`, with its own Shopify variants.
+- **Overview inset** (decided Oct 17 2026): when a trip is split into detailed panels
+  (or doesn't fit even as a triptych), the print adds a small overview map showing the
+  whole route with the stops numbered, so the detailed panels read as parts of one trip.
+- **No empty ocean** (decided Oct 17 2026): a map that would be mostly open water (e.g.
+  Los Angeles → Tokyo) isn't shown as one map. Each side of the ocean becomes its own
+  detailed panel, and the gap is shrunk *visibly*, never faked:
+  - Panels are never stitched or squashed into one fake-continuous map; within a panel,
+    geography stays true (accuracy principle).
+  - Between panels, a break mark with the crossing, e.g. "Pacific Ocean · 8,800 km",
+    makes the jump self-explanatory.
+  - The overview inset shows the true route, centred on the ocean crossed (handles the
+    date line: centre on the Pacific, not Greenwich).
+  - Trigger: same deterministic test as splitting, plus "share of the fitted map that
+    is water" above a threshold; the split cuts at the longest leg.
 
 ## 6. Open decisions
 
 - Pricing for trip prints with photos.
 - Layouts offered per print size (how 7 map stops + photos are arranged).
-- Trips that don't fit even as a triptych (e.g. around-the-world): allow a zoomed-out
-  "world" style, an overview inset, or more panels?
-- Trips crossing the date line (e.g. Los Angeles → Tokyo) need the map centred on the
-  Pacific rather than spanning the whole world.
 - Whether finishes and frames match Atlas & Ink exactly (default: yes).
 - Customer accounts / saved trips (expected eventually; may hand off to Shopify).
 
