@@ -119,10 +119,27 @@ them **alongside** the existing code, without changing how single prints behave:
   - Trigger: same deterministic test as splitting, plus "share of the fitted map that
     is water" above a threshold; the split cuts at the longest leg.
 
+- **Print layout B, "photos on the map"** (decided Oct 17 2026; mockups on the
+  "TripMyWay Print Layouts" design canvas): full-width map with the route line and
+  numbered stops; each stop's photo sits in a circle beside its marker, joined by a
+  dotted leader line; title and trip line (from → to · stops · dates) centred below;
+  map attribution at the foot.
+  - Photo placement must be automatic and deterministic, like the fit/split test:
+    for each stop, try candidate spots around its marker and pick one that keeps the
+    circle inside the map, off other markers, labels, circles and the route line, with
+    a short leader. If a stop can't be placed (crowded cluster), shrink circles a step,
+    then fall back to the photo strip (layout A) for that print. Never place by AI.
+  - Circle size scales with print size (all geometry in `poster-layout.ts`, % of width).
+- **Split trips look like the split mockup** (decided Oct 17 2026): one print per leg,
+  stops numbered across the whole trip, "Part N of M" in the trip line, the break mark
+  at the inner edges ("Pacific Ocean · ≈ 8,300 km →" / "← From San Francisco"), and the
+  whole-trip overview inset on one panel.
+
 ## 6. Open decisions
 
 - Pricing for trip prints with photos.
-- Layouts offered per print size (how 7 map stops + photos are arranged).
+- Split panels: photos on the map (B) like single prints, or the photo strip used in
+  the split mockup? Default: B, falling back to the strip when a panel is crowded.
 - Whether finishes and frames match Atlas & Ink exactly (default: yes).
 - Customer accounts / saved trips (expected eventually; may hand off to Shopify).
 
