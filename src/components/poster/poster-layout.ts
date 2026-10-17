@@ -124,3 +124,54 @@ export function trackingEm(tracking: string) {
   const n = parseFloat(tracking);
   return Number.isFinite(n) ? n : 0;
 }
+
+/**
+ * TRIP PRINTS (layout B, "photos on the map"). Same units as LAYOUT: cqw,
+ * percent of the poster's width. Markers and photos also have limits in
+ * inches so they stay readable on an 8×10 and don't balloon on a 32×48.
+ */
+export const TRIP_LAYOUT = {
+  /** Map window inset from the poster's left, right and top edges. */
+  mapInset: 5.56,
+  /** Title, trip line and attribution below the map. */
+  textBandHeight: 33.3,
+  /** Stops are fitted this far (fraction of the map window) from its edges, leaving room for photos. */
+  fitPadding: 0.14,
+
+  marker: { diameter: 3.85, minIn: 0.28, maxIn: 0.6 },
+  photo: {
+    /** Outer diameter, white ring included (the ring is drawn inside it). */
+    diameter: 11.1,
+    ring: 0.7,
+    minIn: 0.8,
+    /** Smaller steps tried, in turn, when photos don't all fit at full size. */
+    shrinkSteps: [1, 0.85, 0.72],
+    /** Stop name under the photo. */
+    label: { size: 1.55, lineHeight: 1.3, gap: 0.8, charWidth: 0.62 },
+  },
+  /** Space between a marker's edge and its photo's edge, at the nearest. */
+  leaderGap: 1.2,
+  /** Kept clear round every photo and name: of the route, markers and other photos. */
+  clearance: 1,
+} as const;
+
+export function cqwToIn(cqw: number, widthIn: number) {
+  return (cqw * widthIn) / 100;
+}
+
+/** The trip map window, in cqw, for a poster of the given height (in cqw). */
+export function tripMapRect(heightCqw: number) {
+  const inset = TRIP_LAYOUT.mapInset;
+  return {
+    x: inset,
+    y: inset,
+    width: 100 - inset * 2,
+    height: heightCqw - inset - TRIP_LAYOUT.textBandHeight,
+  };
+}
+
+/** Marker diameter in inches on a print `widthIn` wide. */
+export function tripMarkerIn(widthIn: number) {
+  const m = TRIP_LAYOUT.marker;
+  return Math.min(m.maxIn, Math.max(m.minIn, cqwToIn(m.diameter, widthIn)));
+}

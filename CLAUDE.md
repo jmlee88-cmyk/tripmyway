@@ -92,14 +92,22 @@ them **alongside** the existing code, without changing how single prints behave:
 - **Auto-fit, then split** (decided Oct 17 2026): the map zooms out to fit all stops. If
   the trip is too spread out for one map to look good, the site suggests a **diptych (2)
   or triptych (3)**, each panel covering a consecutive leg of the trip.
-  Proposed implementation (not yet built):
+  **Built** in `src/lib/trip/` (fit.ts, plan.ts; rules in `src/config/trip.ts`; tests in
+  trip.test.ts with real Italy, California→Japan and coast-to-coast US trips):
   - "Fits" is a deterministic geometry test, not an AI judgement (accuracy principle):
     fitted zoom ≥ a per-style minimum (below it the map loses the street-level look),
     and every pair of stop markers ≥ a minimum distance apart in inches at the chosen
     print size (otherwise markers/labels collide).
   - Splitting keeps trip order: try every way to cut the stop list into 2, then 3,
     consecutive legs; keep splits where each panel fits; prefer the fewest panels, then
-    the most even zooms.
+    panels at similar scales (no lone city close-up beside country maps), then cutting at
+    the longest legs, then the most even zooms.
+  - `plansBySize` gives the plan at every size, so the site can say "fits on one print
+    from 12 × 18 up" before suggesting a split (e.g. Italy splits only at 8 × 10).
+  - `minFramingZoom` is 3.5 (≈ 3,000 km across), a PLACEHOLDER to tune on real renders.
+  - Not built yet: the water estimate from map tiles (`waterShare` hook is in place;
+    today only distance and zoom trigger splits, which already covers LA → Tokyo), and
+    naming the crossing ("Pacific Ocean") for the break mark (the km are computed).
   - The agent (Claude) only explains and offers the options the geometry produced; it
     never invents a split. Same pattern as the story AI: validated output only.
   - Diptych is a new format: add `"diptych"` to `PrintFormat` alongside `single` and
@@ -124,22 +132,24 @@ them **alongside** the existing code, without changing how single prints behave:
   numbered stops; each stop's photo sits in a circle beside its marker, joined by a
   dotted leader line; title and trip line (from → to · stops · dates) centred below;
   map attribution at the foot.
+  - **Built** in `src/lib/trip/placement.ts` (geometry in `TRIP_LAYOUT`, `poster-layout.ts`).
   - Photo placement must be automatic and deterministic, like the fit/split test:
     for each stop, try candidate spots around its marker and pick one that keeps the
     circle inside the map, off other markers, labels, circles and the route line, with
     a short leader. If a stop can't be placed (crowded cluster), shrink circles a step,
     then fall back to the photo strip (layout A) for that print. Never place by AI.
+    Leaders may cross the route only when no clear spot exists (scored, not forbidden).
+    Stops without a photo get just their name beside the marker.
   - Circle size scales with print size (all geometry in `poster-layout.ts`, % of width).
 - **Split trips look like the split mockup** (decided Oct 17 2026): one print per leg,
   stops numbered across the whole trip, "Part N of M" in the trip line, the break mark
   at the inner edges ("Pacific Ocean · ≈ 8,300 km →" / "← From San Francisco"), and the
-  whole-trip overview inset on one panel.
+  whole-trip overview inset on one panel. Each split panel uses layout B (photos on
+  the map), with the same fallback to the photo strip when a panel is crowded.
 
 ## 6. Open decisions
 
 - Pricing for trip prints with photos.
-- Split panels: photos on the map (B) like single prints, or the photo strip used in
-  the split mockup? Default: B, falling back to the strip when a panel is crowded.
 - Whether finishes and frames match Atlas & Ink exactly (default: yes).
 - Customer accounts / saved trips (expected eventually; may hand off to Shopify).
 
