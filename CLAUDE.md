@@ -88,11 +88,31 @@ them **alongside** the existing code, without changing how single prints behave:
   completely separate from Atlas & Ink: its own store, products, variant IDs, Storefront
   token, checkout, notification emails and Shopify app install. Nothing in TripMyWay
   should point at `atlasandink-5xx4gzrr.myshopify.com`.
+- **Up to 7 stops per trip** (decided Oct 17 2026), each with an optional photo.
+- **Auto-fit, then split** (decided Oct 17 2026): the map zooms out to fit all stops. If
+  the trip is too spread out for one map to look good, the site suggests a **diptych (2)
+  or triptych (3)**, each panel covering a consecutive leg of the trip.
+  Proposed implementation (not yet built):
+  - "Fits" is a deterministic geometry test, not an AI judgement (accuracy principle):
+    fitted zoom ≥ a per-style minimum (below it the map loses the street-level look),
+    and every pair of stop markers ≥ a minimum distance apart in inches at the chosen
+    print size (otherwise markers/labels collide).
+  - Splitting keeps trip order: try every way to cut the stop list into 2, then 3,
+    consecutive legs; keep splits where each panel fits; prefer the fewest panels, then
+    the most even zooms.
+  - The agent (Claude) only explains and offers the options the geometry produced; it
+    never invents a split. Same pattern as the story AI: validated output only.
+  - Diptych is a new format: add `"diptych"` to `PrintFormat` alongside `single` and
+    `triptych`, with its own Shopify variants.
 
 ## 6. Open decisions
 
 - Pricing for trip prints with photos.
-- Maximum stops/photos per print, and layouts offered per print size.
+- Layouts offered per print size (how 7 map stops + photos are arranged).
+- Trips that don't fit even as a triptych (e.g. around-the-world): allow a zoomed-out
+  "world" style, an overview inset, or more panels?
+- Trips crossing the date line (e.g. Los Angeles → Tokyo) need the map centred on the
+  Pacific rather than spanning the whole world.
 - Whether finishes and frames match Atlas & Ink exactly (default: yes).
 - Customer accounts / saved trips (expected eventually; may hand off to Shopify).
 
