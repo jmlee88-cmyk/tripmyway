@@ -72,7 +72,7 @@ export function tooSmallMessage(
   const tooBig = firstSizeTooBig(photo);
   const fits = tooBig ? smallerSizeLabel(tooBig.id) : null;
   return (
-    `This photo is ${px} px across; a ${size.label} print needs at least ${photoNeedPx(sizeId)} px ` +
+    `This photo is ${px} px across; ${/^(8|18)\b/.test(size.label) ? "an" : "a"} ${size.label} print needs at least ${photoNeedPx(sizeId)} px ` +
     `to print sharply. ${fits ? `Choose a print up to ${fits}, or a larger photo.` : "Please choose a larger photo."}`
   );
 }

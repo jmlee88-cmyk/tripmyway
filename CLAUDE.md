@@ -114,6 +114,9 @@ them **alongside** the existing code, without changing how single prints behave:
   `"diptych"` added to `PrintFormat` / `PRINT_FORMATS`; checkout picks the format by panel count.
   Verified live Oct 18: cartCreate prices match (e.g. set of two 18 × 24 paper = $178) and /cart →
   Checkout hands off to the TripMyWay store, which shows its password page until a paid plan is picked.
+- **Done (Oct 18 2026): customer photo storage.** R2 bucket `tripmyway-photos` (binding `PHOTOS`,
+  also for preview builds) with a lifecycle rule deleting objects **180 days** after upload (owner's
+  decision). Photos for orders must be printed within that window.
 - Shopify app: deploy a separate app (or reuse) for the order-page preview.
 
 ## 5. Decisions made
@@ -198,6 +201,21 @@ them **alongside** the existing code, without changing how single prints behave:
   at the inner edges ("Pacific Ocean · ≈ 8,300 km →" / "← From San Francisco"), and the
   whole-trip overview inset on one panel. Each split panel uses layout B (photos on
   the map), with the same fallback to the photo strip when a panel is crowded.
+
+- **Customer photos** (decided and built Oct 18 2026):
+  - Browser prep (`src/lib/photos.ts`): HEIC converted with `heic-to` (loaded only for HEIC files),
+    turned upright, long side ≤ 3000 px, re-encoded JPEG q0.9; redrawing drops all EXIF incl. GPS.
+    Stored under the SHA-256 of the JPEG via `PUT /api/photos/:key`, served at `/photos/:key.jpg`
+    (`src/server/photos.ts`: same-origin, JPEG only, ≤ 8 MB, id must match content, size read server-side).
+  - **Cropping:** the customer drags/zooms what shows in the circle (`TripPhotoField` + crop dialog);
+    stored as `TripPhoto.crop {x, y, zoom}` and drawn identically by the PDF (`cropSquare`).
+  - **Too small = refused** (owner's decision, not just a warning): the part shown in the circle needs
+    ≥ 150 ppi at the chosen size (`src/lib/trip/photos.ts`, `TRIP.photo`). A too-small photo is refused
+    before upload; once photos are chosen, sizes they're too small for can't be picked on /journey; zoom
+    is capped so the circle stays sharp. `photoProblems()` is there for the cart to re-check.
+  - Verified live Oct 18: sideways phone JPEG with GPS → stored upright, no EXIF; crop shows in the
+    print; 280 px photo refused at 18 × 24. HEIC (rotated, with GPS) verified in headless Chromium.
+  - Not yet: trip add-to-cart (`_design` with photo URLs), print studio trip mode, upload rate limiting.
 
 ## 6. Open decisions
 
