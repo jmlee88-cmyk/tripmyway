@@ -1,6 +1,6 @@
 import type { CartItem, Customization } from "@/types/product";
 import { SHOPIFY } from "@/config/shopify";
-import { getFinish, getFrame } from "@/config/products";
+import { PRINT_FORMATS, getFinish, getFrame } from "@/config/products";
 import { itemLineItemProperties, itemPanels, removeItems } from "./cart";
 
 /**
@@ -52,7 +52,7 @@ function compact(c: Customization) {
 
 export function toCheckoutLine(item: CartItem): CheckoutLine {
   const panels = itemPanels(item);
-  const format = panels.length > 1 ? "triptych" : "single";
+  const format = PRINT_FORMATS.find((f) => f.panels === panels.length)?.id ?? (panels.length > 1 ? "triptych" : "single");
   const size = panels[0]!.printSize;
   const finish = getFinish(panels[0]!.finish).id;
   const framed = getFrame(panels[0]!) !== "none";

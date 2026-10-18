@@ -181,6 +181,7 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
  */
 export const PRINT_FORMATS: { id: PrintFormat; label: string; panels: number; description: string }[] = [
   { id: "single", label: "Single print", panels: 1, description: "One place, one print." },
+  { id: "diptych", label: "Set of two", panels: 2, description: "Two places, or two legs of one trip, designed to hang side by side." },
   { id: "triptych", label: "Set of three", panels: 3, description: "Three places that tell one story, designed to hang side by side." },
 ];
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_CUSTOMIZATION, PRINT_FINISHES, PRINT_SIZES } from "@/config/products";
+import { DEFAULT_CUSTOMIZATION, PRINT_FINISHES, PRINT_FORMATS, PRINT_SIZES } from "@/config/products";
 import { SHOPIFY } from "@/config/shopify";
 import type { CartItem } from "@/types/product";
 import { ensurePanels } from "./print-set";
@@ -27,6 +27,19 @@ describe("Shopify checkout lines", () => {
     const design = JSON.parse(line.attributes.find((a) => a.key === "_design")!.value);
     expect(design.panels).toHaveLength(1);
     expect(design.panels[0].location.latitude).toBe(DEFAULT_CUSTOMIZATION.location!.latitude);
+  });
+
+  it("maps a set of two to the diptych variant", () => {
+    const panels = ensurePanels([{ ...DEFAULT_CUSTOMIZATION, printSize: "18x24" }], 2);
+    const line = toCheckoutLine(item({ customization: panels[0]!, panels }));
+    expect(line.merchandiseId).toBe(SHOPIFY.variants.diptych.paper["18x24"]);
+  });
+
+  it("points at the TripMyWay store, never Atlas & Ink", () => {
+    expect(SHOPIFY.storeDomain).toBe("tripmyway-bf2kmucg.myshopify.com");
+    const ids = JSON.stringify([SHOPIFY.variants, SHOPIFY.framedVariants]);
+    expect(ids).not.toContain("TODO");
+    expect(new Set(ids.match(/ProductVariant\/\d+/g)).size).toBe(120);
   });
 
   it("maps a set to the set variant with every panel", () => {
@@ -100,7 +113,7 @@ describe("Shopify checkout lines", () => {
     const ids = [SHOPIFY.variants, SHOPIFY.framedVariants].flatMap((v) =>
       Object.values(v).flatMap((f) => Object.values(f).flatMap((s) => Object.values(s))),
     );
-    expect(ids).toHaveLength(2 * 2 * PRINT_FINISHES.length * PRINT_SIZES.length);
+    expect(ids).toHaveLength(2 * PRINT_FORMATS.length * PRINT_FINISHES.length * PRINT_SIZES.length);
     expect(new Set(ids).size).toBe(ids.length);
   });
 

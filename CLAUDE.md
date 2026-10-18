@@ -104,7 +104,14 @@ them **alongside** the existing code, without changing how single prints behave:
   `tripmyway-previews`. Live at https://tripmyway.jerry-912.workers.dev (every push to
   `main` redeploys; other branches get preview links). Trip preview: `/trip/preview`.
 - Domain tripmyway.com pointed at Cloudflare (not yet).
-- New Shopify store for TripMyWay (owner creates the account), its Headless channel + public Storefront token, and its own products/variants; replace every value in `config/shopify.ts`.
+- **Done (Oct 18 2026): Shopify store** `tripmyway-bf2kmucg.myshopify.com` (admin.shopify.com/store/tripmyway-bf2kmucg;
+  Development plan, needs a paid plan + payments before real orders). Headless channel
+  "Tripmyway Headless"; its public Storefront token is in `config/shopify.ts`.
+  Products (all published to Tripmyway Headless, untracked inventory, options Size × Finish × Frame,
+  40 variants each, SKUs `TMW-<FORMAT>-<FINISH>-<SIZE>[-F]`): "Trip Map Print" (handle trip-map-print),
+  "Trip Map Diptych (Set of Two)", "Trip Map Triptych (Set of Three)". Prices = Atlas & Ink's
+  (`FINISH_PRICES` + `FRAME_PRICES` when framed), × 2 for diptych and × 3 for triptych.
+  `"diptych"` added to `PrintFormat` / `PRINT_FORMATS`; checkout picks the format by panel count.
 - Shopify app: deploy a separate app (or reuse) for the order-page preview.
 
 ## 5. Decisions made

@@ -25,8 +25,8 @@ export type PrintFinish = "paper" | "canvas" | "metal" | "acrylic";
 /** Optional frame colour. The frame style follows the finish (see FRAME_STYLES). */
 export type FrameColor = "none" | "white" | "black" | "natural" | "gold" | "silver";
 export type TextCase = "upper" | "title";
-/** single: one print. triptych: a set of three prints designed to hang together. */
-export type PrintFormat = "single" | "triptych";
+/** single: one print. diptych / triptych: a set of two / three prints designed to hang together. */
+export type PrintFormat = "single" | "diptych" | "triptych";
 
 export interface MapStyleConfig {
   background: string;
