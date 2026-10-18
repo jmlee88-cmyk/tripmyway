@@ -56,8 +56,14 @@ Cloudflare Worker (`wrangler.jsonc`), R2 for preview images.
   corrected or renamed, get a photo each, and the real trip print (`TripPrintPreview`)
   plus fit/split advice from `plansBySize` show beside them. The page teaches three ways
   to write a trip (day-by-day list, just places, a few sentences) with "use this example".
-  - Needs the Worker secret `ANTHROPIC_API_KEY` on `tripmyway` (set by Jerry in
-    Cloudflare); without it the page explains the reader isn't switched on yet.
+  - Worker secrets `ANTHROPIC_API_KEY` and `ANTHROPIC_WORKSPACE_ID` set on `tripmyway`
+    (Production runtime variables, Oct 18 2026). Tested live: day-by-day list (7 stops,
+    fits 18×24), sentences (Tokyo → Kyoto → Nara → Osaka), and the follow-up question
+    ("Which Springfield…?" → answered → mapped).
+  - Code guards added after live testing: a date must contain a number (lengths of stay
+    like "three days" are dropped); years the text never gave are removed from the title;
+    geocoding treats St./Saint, Mt./Mount, Ft./Fort, Ste./Sainte as the same (St. Louis
+    had matched Washington University).
   - The old story code (`server/story-ai.ts`, `lib/story.ts`, `config/story.ts`) stays:
     journey-ai reuses its `clean`, `ambiguousName` and `printableTitle`, and `create.tsx`
     still reads story drafts (now never written).

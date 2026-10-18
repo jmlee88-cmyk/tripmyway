@@ -134,11 +134,20 @@ export async function findPlace(
   return null;
 }
 
+/**
+ * Lower case, no accents, and common abbreviations spelled out, so "St. Louis"
+ * matches "Saint Louis" and "Mt. Fuji" matches "Mount Fuji".
+ */
 const norm = (s: string | undefined) =>
   (s ?? "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\bste\.?(?=\s)/g, "sainte")
+    .replace(/\bst\.?(?=\s)/g, "saint")
+    .replace(/\bmt\.?(?=\s)/g, "mount")
+    .replace(/\bft\.?(?=\s)/g, "fort")
+    .replace(/\s+/g, " ")
     .trim();
 
 function nameMatches(query: string, l: Location) {

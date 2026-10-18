@@ -48,9 +48,9 @@ For each stop:
 - named: the exact words in the text that name this stop, copied as written.
 - qualifier: the exact words in the text, copied as written, that say which region, state or country the stop is in (e.g. "Maine", "in Oregon", "Italy" from an earlier line about the same trip), or "" if the text doesn't say. Never fill this from your own knowledge.
 - label: the stop's name as a traveller would say it, at most ${JOURNEY.labelMax} characters, in the Latin alphabet (e.g. "Lake Como", "Amalfi Coast", "Kyoto").
-- date: the date or day for that stop exactly as the customer wrote it (e.g. "Jun 5", "5 June", "Day 3"), at most 20 characters, or "" if none is given. Never guess or convert.
+- date: the calendar date or day number for that stop exactly as the customer wrote it (e.g. "Jun 5", "5 June", "June 3–5", "Day 3", "April 2026"), at most 20 characters, or "" if none is given. A length of stay ("three days", "a night", "a week") is not a date: use "". Never guess or convert.
 
-title: a short print title for the whole trip, at most ${TITLE_MAX} characters, in the language of the text, for example the country or region and the year if given ("Italy 2026", "Our Japan Honeymoon", "Road Trip West"). No emoji, no quotation marks. titleEnglish: the same title in English.
+title: a short print title for the whole trip, at most ${TITLE_MAX} characters, in the language of the text, for example the country or region, plus the year only if the text states it ("Italy 2026" when the text says 2026, otherwise "Italy"; "Our Japan Honeymoon"; "Road Trip West"). Never add a year the text doesn't give. No emoji, no quotation marks. titleEnglish: the same title in English.
 
 Never guess a location. Every stop must be identifiable from the text alone:
 - Vague places ("the beach house", "my aunt's", "up north") without a named town are not identifiable.
@@ -151,7 +151,8 @@ export function parseJourney(input: unknown, text = ""): JourneyReading {
         countryCode: /^[A-Za-z]{2}$/.test(cc) ? cc.toUpperCase() : "",
         // Prints are lettered in Latin-alphabet fonts; fall back to the place's own name.
         label: label && LATIN.test(label) ? label : clean(place.split(",")[0], JOURNEY.labelMax),
-        date: clean(s?.["date"], 20),
+        // A date has a number in it; "three days" or "a night" is a length of stay.
+        date: /\d/.test(clean(s?.["date"], 20)) ? clean(s?.["date"], 20) : "",
       };
     })
     .filter((s) => s.place && s.label);
@@ -171,11 +172,21 @@ export function parseJourney(input: unknown, text = ""): JourneyReading {
     );
   }
   return {
-    title: printableTitle(raw["title"], raw["titleEnglish"]),
+    title: withoutInventedYears(printableTitle(raw["title"], raw["titleEnglish"]), text),
     stops,
     followUp: null,
     merged,
   };
+}
+
+/** Removes any year from the title that the customer's text doesn't contain. */
+export function withoutInventedYears(title: string, text: string) {
+  if (!text) return title;
+  return title
+    .replace(/\b(19|20)\d{2}\b/g, (y) => (text.includes(y) ? y : ""))
+    .replace(/\s{2,}/g, " ")
+    .replace(/[\s,·–-]+$/, "")
+    .trim();
 }
 
 export interface JourneyEnv {

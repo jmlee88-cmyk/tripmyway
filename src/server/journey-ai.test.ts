@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { JOURNEY } from "@/config/journey";
-import { buildJourneyRequest, parseJourney, readJourneyText } from "./journey-ai";
+import {
+  buildJourneyRequest,
+  parseJourney,
+  readJourneyText,
+  withoutInventedYears,
+} from "./journey-ai";
 
 const stop = (place: string, label: string, extra: Record<string, string> = {}) => ({
   place,
@@ -12,7 +17,7 @@ const stop = (place: string, label: string, extra: Record<string, string> = {}) 
   ...extra,
 });
 
-const ITALY_TEXT = "Jun 3 – Milan, Italy\nJun 5 – Lake Como\nJun 7 – Venice";
+const ITALY_TEXT = "Italy, June 2026\nJun 3 – Milan, Italy\nJun 5 – Lake Como\nJun 7 – Venice";
 
 describe("journey AI", () => {
   it("asks the configured model for a forced tool call with the trip wrapped as data", () => {
@@ -134,6 +139,25 @@ describe("journey AI", () => {
       }).followUp,
     ).toBe("Which town is the cabin in?");
     expect(parseJourney({}).followUp).toMatch(/Where did you go/);
+  });
+
+  it("drops lengths of stay from dates and years the text never gave", () => {
+    const r = parseJourney(
+      {
+        title: "Italy 2026",
+        titleEnglish: "Italy 2026",
+        stops: [
+          stop("Kyoto, Japan", "Kyoto", { date: "three days" }),
+          stop("Nara, Japan", "Nara", { date: "Jun 5" }),
+        ],
+        followUp: null,
+      },
+      "Kyoto for three days, then Nara on Jun 5",
+    );
+    expect(r.stops.map((s) => s.date)).toEqual(["", "Jun 5"]);
+    expect(r.title).toBe("Italy");
+    expect(withoutInventedYears("Japan 2026", "our honeymoon in April 2026")).toBe("Japan 2026");
+    expect(withoutInventedYears("Road Trip 2025", "drove west")).toBe("Road Trip");
   });
 
   it("calls the API and reads the tool answer", async () => {
