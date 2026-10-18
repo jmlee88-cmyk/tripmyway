@@ -5,7 +5,8 @@ import type { TripDesign, TripPhoto } from "@/types/trip";
 import { MAP_STYLES } from "@/config/map-styles";
 import { PRINT_SIZES, getPrintSize } from "@/config/products";
 import { SAMPLE_TRIPS } from "@/config/trip-samples";
-import { TRIP_LAYOUT, cqwToIn } from "@/components/poster/poster-layout";
+import { fitPhotoToSize } from "@/lib/trip/photos";
+import { TripPhotoField } from "@/components/trip/TripPhotoField";
 import { plansBySize } from "@/lib/trip/plan";
 import { formatKm } from "@/print/render-trip-pdf";
 import { generateTripPrintFile } from "@/lib/trip-print";
@@ -62,7 +63,7 @@ function TripPreview() {
       styleId,
       stops: sample.design.stops.map((s) => {
         const photo = photos[`${sample.id}:${s.id}`];
-        return photo ? { ...s, photo } : s;
+        return photo ? { ...s, photo: fitPhotoToSize(photo, printSize) } : s;
       }),
     }),
     [sample, printSize, styleId, photos],
@@ -142,8 +143,6 @@ function TripPreview() {
   if (!mounted) return <div className="min-h-[60vh]" />;
 
   const size = getPrintSize(printSize);
-  // A photo should have at least 150 pixels per inch at its printed size.
-  const photoNeedPx = Math.round(cqwToIn(TRIP_LAYOUT.photo.diameter, size.widthIn) * 150);
   const stale = rendered?.key !== key;
 
   return (
@@ -265,9 +264,7 @@ function TripPreview() {
             <p className="eyebrow">Stops and photos</p>
             <ol className="flex flex-col gap-3">
               {design.stops.map((s, i) => {
-                const photo = s.photo;
-                const small =
-                  photo && Math.min(photo.widthPx, photo.heightPx) < photoNeedPx ? photo : null;
+                const photoKey = `${sample.id}:${s.id}`;
                 return (
                   <li key={s.id} className="flex flex-col gap-1">
                     <div className="flex items-center justify-between gap-3">
@@ -277,22 +274,18 @@ function TripPreview() {
                         </span>
                         {s.label}
                       </span>
-                      <label className="cursor-pointer text-xs underline underline-offset-4">
-                        {photo ? "Change photo" : "Add photo"}
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png"
-                          className="sr-only"
-                          onChange={(e) => void addPhoto(s.id, e.target.files?.[0])}
-                        />
-                      </label>
                     </div>
-                    {small && (
-                      <p className="text-xs text-destructive">
-                        This photo is {Math.min(small.widthPx, small.heightPx)} px across; at{" "}
-                        {size.label} it needs about {photoNeedPx} px to print sharply.
-                      </p>
-                    )}
+                    <TripPhotoField
+                      photo={photos[photoKey]}
+                      sizeId={printSize}
+                      stopName={s.label}
+                      onChange={(photo) =>
+                        setPhotos((p) => {
+                          const { [photoKey]: _old, ...rest } = p;
+                          return photo ? { ...rest, [photoKey]: photo } : rest;
+                        })
+                      }
+                    />
                   </li>
                 );
               })}

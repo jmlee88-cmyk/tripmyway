@@ -6,10 +6,12 @@
   "compatibility_date": "2026-10-05",
   "compatibility_flags": ["nodejs_compat"],
   // Map preview images (one PNG per design), served by the site at /previews/…
-  "r2_buckets": [{ "binding": "PREVIEWS", "bucket_name": "tripmyway-previews" }],
+  "r2_buckets": [{ "binding": "PREVIEWS", "bucket_name": "tripmyway-previews" },
+    { "binding": "PHOTOS", "bucket_name": "tripmyway-photos" }],
   // Required by `wrangler preview`, which Workers Builds runs for
   // non-production branches. Bindings aren't inherited, so list them here too.
   "previews": {
-    "r2_buckets": [{ "binding": "PREVIEWS", "bucket_name": "tripmyway-previews" }]
+    "r2_buckets": [{ "binding": "PREVIEWS", "bucket_name": "tripmyway-previews" },
+    { "binding": "PHOTOS", "bucket_name": "tripmyway-photos" }]
   }
 }

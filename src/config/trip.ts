@@ -32,6 +32,19 @@ export const TRIP = {
    * map tiles; see `waterShare` in src/lib/trip/plan.ts.
    */
   maxWaterShare: 0.6,
+
+  /** Customer photos (upload: src/lib/photos.ts; rules: src/lib/trip/photos.ts). */
+  photo: {
+    /** Fewest pixels per printed inch across a photo's circle; below it the photo is refused. */
+    minPpi: 150,
+    /** Photos are stored with their long side at most this many pixels (far above print needs). */
+    maxLongPx: 3000,
+    jpegQuality: 0.9,
+    /** Largest upload the server accepts, after the browser has resized it. */
+    maxUploadBytes: 8_000_000,
+    /** Furthest a customer may zoom into a photo when choosing what shows in the circle. */
+    maxZoom: 4,
+  },
 } as const;
 
 export function minFramingZoomFor(styleId: string): number {

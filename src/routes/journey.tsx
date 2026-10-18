@@ -5,7 +5,7 @@ import type { TripDesign, TripPhoto, TripStop } from "@/types/trip";
 import { JOURNEY } from "@/config/journey";
 import { DEFAULT_STYLE_ID } from "@/config/map-styles";
 import { PRINT_SIZES, TITLE_MAX, getPrintSize } from "@/config/products";
-import { TRIP_LAYOUT, cqwToIn } from "@/components/poster/poster-layout";
+import { fitPhotoToSize, photoTooSmall } from "@/lib/trip/photos";
 import { readJourney, type JourneyReading } from "@/lib/journey";
 import { findPlace } from "@/lib/geocoding";
 import { plansBySize } from "@/lib/trip/plan";
@@ -13,6 +13,7 @@ import { formatKm } from "@/print/render-trip-pdf";
 import { track } from "@/lib/analytics";
 import { LocationSearch } from "@/components/editor/LocationSearch";
 import { TripPrintPreview } from "@/components/trip/TripPrintPreview";
+import { TripPhotoField } from "@/components/trip/TripPhotoField";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/journey")({
@@ -43,7 +44,7 @@ interface Draft {
   date: string;
   location: Location | null;
   lookup: "pending" | "found" | "missing";
-  photo?: TripPhoto;
+  photo?: TripPhoto | undefined;
 }
 
 function JourneyPage() {
@@ -106,23 +107,6 @@ function JourneyPage() {
     }
   }
 
-  async function addPhoto(i: number, file: File | undefined) {
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.src = url;
-    await img.decode().catch(() => undefined);
-    patch(i, {
-      photo: {
-        key: `${file.name}:${file.size}:${file.lastModified}`,
-        url,
-        widthPx: img.naturalWidth,
-        heightPx: img.naturalHeight,
-      },
-    });
-    track("journey_photo_added");
-  }
-
   const allFound = drafts.length > 0 && drafts.every((d) => d.location);
   const design: TripDesign | null = useMemo(() => {
     if (!allFound) return null;
@@ -135,7 +119,7 @@ function JourneyPage() {
         label: d.label.trim() || d.location!.name,
         location: d.location!,
         ...(d.date.trim() ? { date: d.date.trim() } : {}),
-        ...(d.photo ? { photo: d.photo } : {}),
+        ...(d.photo ? { photo: fitPhotoToSize(d.photo, printSize) } : {}),
       })),
     };
   }, [allFound, drafts, title, printSize]);
@@ -154,7 +138,6 @@ function JourneyPage() {
   const plan = bySize?.find((b) => b.size.id === printSize)?.plan;
   const singleFrom = bySize?.find((b) => b.plan.panels.length === 1 && b.plan.fits)?.size;
   const size = getPrintSize(printSize);
-  const photoNeedPx = Math.round(cqwToIn(TRIP_LAYOUT.photo.diameter, size.widthIn) * 150);
 
   return (
     <div className="mx-auto max-w-6xl px-5 pb-24 pt-10 md:px-10 md:pt-16">
@@ -312,8 +295,6 @@ function JourneyPage() {
 
                 <ol className="mt-8 flex flex-col divide-y divide-border border-y border-border">
                   {drafts.map((d, i) => {
-                    const small =
-                      d.photo && Math.min(d.photo.widthPx, d.photo.heightPx) < photoNeedPx;
                     return (
                       <li key={d.id} className="flex gap-4 py-5">
                         <span
@@ -366,28 +347,13 @@ function JourneyPage() {
                               onSelect={(l) => patch(i, { location: l, lookup: "found" })}
                             />
                           )}
-                          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs">
-                            {d.photo && (
-                              <img
-                                src={d.photo.url}
-                                alt=""
-                                className="h-10 w-10 rounded-full object-cover"
-                              />
-                            )}
-                            <label className="cursor-pointer underline underline-offset-4">
-                              {d.photo ? "Change photo" : "Add a photo"}
-                              <input
-                                type="file"
-                                accept="image/jpeg,image/png"
-                                className="sr-only"
-                                onChange={(e) => void addPhoto(i, e.target.files?.[0])}
-                              />
-                            </label>
-                            {small && (
-                              <span className="text-destructive">
-                                This photo is small for {size.label}; it may print soft.
-                              </span>
-                            )}
+                          <div className="mt-1">
+                            <TripPhotoField
+                              photo={d.photo}
+                              sizeId={printSize}
+                              stopName={d.label.trim() || d.location?.name || `stop ${i + 1}`}
+                              onChange={(photo) => patch(i, { photo })}
+                            />
                           </div>
                         </div>
                       </li>
@@ -407,11 +373,15 @@ function JourneyPage() {
                       onChange={(e) => setPrintSize(e.target.value as PrintSizeId)}
                       className="h-10 border border-border bg-background px-2 text-sm"
                     >
-                      {PRINT_SIZES.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.label} in
-                        </option>
-                      ))}
+                      {PRINT_SIZES.map((s) => {
+                        // Sizes a chosen photo is too small for can't be picked.
+                        const blocked = drafts.some((d) => d.photo && photoTooSmall(d.photo, s.id));
+                        return (
+                          <option key={s.id} value={s.id} disabled={blocked}>
+                            {s.label} in{blocked ? " (a photo is too small)" : ""}
+                          </option>
+                        );
+                      })}
                     </select>
                   </label>
                 </div>

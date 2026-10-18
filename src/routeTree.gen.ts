@@ -16,11 +16,13 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as StoryRouteImport } from './routes/story'
+import { Route as PhotosFileRouteImport } from './routes/photos.$file'
 import { Route as PreviewsFileRouteImport } from './routes/previews.$file'
 import { Route as StudioPrintRouteImport } from './routes/studio.print'
 import { Route as StylesIndexRouteImport } from './routes/styles.index'
 import { Route as StylesStyleIdRouteImport } from './routes/styles.$styleId'
 import { Route as TripPreviewRouteImport } from './routes/trip.preview'
+import { Route as ApiPhotosKeyRouteImport } from './routes/api.photos.$key'
 import { Route as ApiPreviewsKeyRouteImport } from './routes/api.previews.$key'
 
 const IndexRoute = IndexRouteImport.update({
@@ -58,6 +60,11 @@ const StoryRoute = StoryRouteImport.update({
   path: '/story',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PhotosFileRoute = PhotosFileRouteImport.update({
+  id: '/photos/$file',
+  path: '/photos/$file',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PreviewsFileRoute = PreviewsFileRouteImport.update({
   id: '/previews/$file',
   path: '/previews/$file',
@@ -83,6 +90,11 @@ const TripPreviewRoute = TripPreviewRouteImport.update({
   path: '/trip/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPhotosKeyRoute = ApiPhotosKeyRouteImport.update({
+  id: '/api/photos/$key',
+  path: '/api/photos/$key',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPreviewsKeyRoute = ApiPreviewsKeyRouteImport.update({
   id: '/api/previews/$key',
   path: '/api/previews/$key',
@@ -97,11 +109,13 @@ export interface FileRoutesByFullPath {
   '/faq': typeof FaqRoute
   '/journey': typeof JourneyRoute
   '/story': typeof StoryRoute
+  '/photos/$file': typeof PhotosFileRoute
   '/previews/$file': typeof PreviewsFileRoute
   '/studio/print': typeof StudioPrintRoute
   '/styles/$styleId': typeof StylesStyleIdRoute
   '/trip/preview': typeof TripPreviewRoute
   '/styles/': typeof StylesIndexRoute
+  '/api/photos/$key': typeof ApiPhotosKeyRoute
   '/api/previews/$key': typeof ApiPreviewsKeyRoute
 }
 export interface FileRoutesByTo {
@@ -112,11 +126,13 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/journey': typeof JourneyRoute
   '/story': typeof StoryRoute
+  '/photos/$file': typeof PhotosFileRoute
   '/previews/$file': typeof PreviewsFileRoute
   '/studio/print': typeof StudioPrintRoute
   '/styles/$styleId': typeof StylesStyleIdRoute
   '/trip/preview': typeof TripPreviewRoute
   '/styles': typeof StylesIndexRoute
+  '/api/photos/$key': typeof ApiPhotosKeyRoute
   '/api/previews/$key': typeof ApiPreviewsKeyRoute
 }
 export interface FileRoutesById {
@@ -128,11 +144,13 @@ export interface FileRoutesById {
   '/faq': typeof FaqRoute
   '/journey': typeof JourneyRoute
   '/story': typeof StoryRoute
+  '/photos/$file': typeof PhotosFileRoute
   '/previews/$file': typeof PreviewsFileRoute
   '/studio/print': typeof StudioPrintRoute
   '/styles/$styleId': typeof StylesStyleIdRoute
   '/trip/preview': typeof TripPreviewRoute
   '/styles/': typeof StylesIndexRoute
+  '/api/photos/$key': typeof ApiPhotosKeyRoute
   '/api/previews/$key': typeof ApiPreviewsKeyRoute
 }
 export interface FileRouteTypes {
@@ -145,11 +163,13 @@ export interface FileRouteTypes {
     | '/faq'
     | '/journey'
     | '/story'
+    | '/photos/$file'
     | '/previews/$file'
     | '/studio/print'
     | '/styles/$styleId'
     | '/trip/preview'
     | '/styles/'
+    | '/api/photos/$key'
     | '/api/previews/$key'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -160,11 +180,13 @@ export interface FileRouteTypes {
     | '/faq'
     | '/journey'
     | '/story'
+    | '/photos/$file'
     | '/previews/$file'
     | '/studio/print'
     | '/styles/$styleId'
     | '/trip/preview'
     | '/styles'
+    | '/api/photos/$key'
     | '/api/previews/$key'
   id:
     | '__root__'
@@ -175,11 +197,13 @@ export interface FileRouteTypes {
     | '/faq'
     | '/journey'
     | '/story'
+    | '/photos/$file'
     | '/previews/$file'
     | '/studio/print'
     | '/styles/$styleId'
     | '/trip/preview'
     | '/styles/'
+    | '/api/photos/$key'
     | '/api/previews/$key'
   fileRoutesById: FileRoutesById
 }
@@ -191,11 +215,13 @@ export interface RootRouteChildren {
   FaqRoute: typeof FaqRoute
   JourneyRoute: typeof JourneyRoute
   StoryRoute: typeof StoryRoute
+  PhotosFileRoute: typeof PhotosFileRoute
   PreviewsFileRoute: typeof PreviewsFileRoute
   StudioPrintRoute: typeof StudioPrintRoute
   StylesStyleIdRoute: typeof StylesStyleIdRoute
   TripPreviewRoute: typeof TripPreviewRoute
   StylesIndexRoute: typeof StylesIndexRoute
+  ApiPhotosKeyRoute: typeof ApiPhotosKeyRoute
   ApiPreviewsKeyRoute: typeof ApiPreviewsKeyRoute
 }
 
@@ -250,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/photos/$file': {
+      id: '/photos/$file'
+      path: '/photos/$file'
+      fullPath: '/photos/$file'
+      preLoaderRoute: typeof PhotosFileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/previews/$file': {
       id: '/previews/$file'
       path: '/previews/$file'
@@ -285,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TripPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/photos/$key': {
+      id: '/api/photos/$key'
+      path: '/api/photos/$key'
+      fullPath: '/api/photos/$key'
+      preLoaderRoute: typeof ApiPhotosKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/previews/$key': {
       id: '/api/previews/$key'
       path: '/api/previews/$key'
@@ -303,11 +343,13 @@ const rootRouteChildren: RootRouteChildren = {
   FaqRoute: FaqRoute,
   JourneyRoute: JourneyRoute,
   StoryRoute: StoryRoute,
+  PhotosFileRoute: PhotosFileRoute,
   PreviewsFileRoute: PreviewsFileRoute,
   StudioPrintRoute: StudioPrintRoute,
   StylesStyleIdRoute: StylesStyleIdRoute,
   TripPreviewRoute: TripPreviewRoute,
   StylesIndexRoute: StylesIndexRoute,
+  ApiPhotosKeyRoute: ApiPhotosKeyRoute,
   ApiPreviewsKeyRoute: ApiPreviewsKeyRoute,
 }
 export const routeTree = rootRouteImport

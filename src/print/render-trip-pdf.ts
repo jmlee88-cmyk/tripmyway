@@ -40,6 +40,7 @@ import { LAYOUT, TRIP_LAYOUT, posterHeight, tripMapRect } from "@/components/pos
 import { frameInWindow } from "@/lib/trip/fit";
 import { type TripPlan, planTrip } from "@/lib/trip/plan";
 import { type Box, type Placement, placePhotos } from "@/lib/trip/placement";
+import { cropSquare } from "@/lib/trip/photos";
 import {
   FontCache,
   baselineInLineBox,
@@ -299,11 +300,12 @@ export async function renderTripPdf(
             clip(),
             endPath(),
           );
-          const d = 2 * r * u;
-          const k = d / Math.min(img.width, img.height);
+          // The customer's chosen square of the photo fills the circle (see PhotoCrop).
+          const sq = cropSquare(panelStops[s.index]!.photo!, img.width, img.height);
+          const k = (2 * r * u) / sq.side;
           page.drawImage(img, {
-            x: X(c.x) - (img.width * k) / 2,
-            y: Y(c.y) - (img.height * k) / 2,
+            x: X(c.x) - sq.cx * k,
+            y: Y(c.y) - (img.height - sq.cy) * k,
             width: img.width * k,
             height: img.height * k,
           });

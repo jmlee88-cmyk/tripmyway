@@ -13,6 +13,19 @@ export interface TripPhoto {
   url: string;
   widthPx: number;
   heightPx: number;
+  /** What shows in the circle. Missing = centred, not zoomed. */
+  crop?: PhotoCrop;
+}
+
+/**
+ * The part of a photo shown in its circle: a square centred at (x, y), as
+ * fractions of the photo's width and height, whose side is the photo's short
+ * side divided by `zoom` (1 = as large as fits).
+ */
+export interface PhotoCrop {
+  x: number;
+  y: number;
+  zoom: number;
 }
 
 export interface TripStop {

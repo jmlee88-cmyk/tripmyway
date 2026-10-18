@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_CUSTOMIZATION, PRINT_FINISHES, PRINT_FORMATS, PRINT_SIZES } from "@/config/products";
+import {
+  DEFAULT_CUSTOMIZATION,
+  PRINT_FINISHES,
+  PRINT_FORMATS,
+  PRINT_SIZES,
+} from "@/config/products";
 import { SHOPIFY } from "@/config/shopify";
 import type { CartItem } from "@/types/product";
 import { ensurePanels } from "./print-set";
