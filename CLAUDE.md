@@ -78,7 +78,12 @@ them **alongside** the existing code, without changing how single prints behave:
   and `.lovable/`).
 - Cloudflare Worker name and R2 bucket names in `wrangler.jsonc` (e.g. `tripmyway`,
   `tripmyway-previews`, `tripmyway-photos`).
-- Domain tripmyway.com pointed at Cloudflare.
+- **Done (Oct 18 2026):** Cloudflare Worker `tripmyway` in "Jerry@demesh.com's Account",
+  connected to jmlee88-cmyk/tripmyway (branch `main`, build `bun run build`, deploy
+  `npx wrangler deploy`, preview builds on, own "tripmyway build token"); R2 bucket
+  `tripmyway-previews`. Live at https://tripmyway.jerry-912.workers.dev (every push to
+  `main` redeploys; other branches get preview links). Trip preview: `/trip/preview`.
+- Domain tripmyway.com pointed at Cloudflare (not yet).
 - New Shopify store for TripMyWay (owner creates the account), its Headless channel + public Storefront token, and its own products/variants; replace every value in `config/shopify.ts`.
 - Shopify app: deploy a separate app (or reuse) for the order-page preview.
 
@@ -151,6 +156,10 @@ them **alongside** the existing code, without changing how single prints behave:
     PDF rendered on screen; warns when a photo is under 150 px per printed inch.
   - Checked on real coastlines (Natural Earth) before shipping; the live tile server is
     not reachable from Claude's workspace, so real-map review happens on a deployed site.
+  - Seen on live map data (Oct 18): works for Italy and the California → Japan split.
+    The route is drawn in the style's accent colour, which is near-black in Modern
+    Minimal, so it competes with the dense road network at trip scale; the TripMyWay
+    print theme should give the route its own colour and thin out roads at low zoom.
   - Known gaps: crowded prints fall back to names only (the photo strip isn't drawn yet);
     no canvas gallery wrap for trips yet; the inherited Atlas styles show no country
     borders or rivers at trip scale (TripMyWay print theme should add them); print
