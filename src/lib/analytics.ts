@@ -17,6 +17,11 @@ export type AnalyticsEvent =
   | "story_recommended"
   | "story_to_editor"
   | "story_followup_answered"
+  | "journey_submitted"
+  | "journey_read"
+  | "journey_followup_answered"
+  | "journey_example_used"
+  | "journey_photo_added"
   | "add_to_cart"
   | "checkout_started";
 

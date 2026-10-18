@@ -14,6 +14,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as StoryRouteImport } from './routes/story'
 import { Route as PreviewsFileRouteImport } from './routes/previews.$file'
 import { Route as StudioPrintRouteImport } from './routes/studio.print'
@@ -45,6 +46,11 @@ const CreateRoute = CreateRouteImport.update({
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JourneyRoute = JourneyRouteImport.update({
+  id: '/journey',
+  path: '/journey',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoryRoute = StoryRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/create': typeof CreateRoute
   '/faq': typeof FaqRoute
+  '/journey': typeof JourneyRoute
   '/story': typeof StoryRoute
   '/previews/$file': typeof PreviewsFileRoute
   '/studio/print': typeof StudioPrintRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/create': typeof CreateRoute
   '/faq': typeof FaqRoute
+  '/journey': typeof JourneyRoute
   '/story': typeof StoryRoute
   '/previews/$file': typeof PreviewsFileRoute
   '/studio/print': typeof StudioPrintRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/create': typeof CreateRoute
   '/faq': typeof FaqRoute
+  '/journey': typeof JourneyRoute
   '/story': typeof StoryRoute
   '/previews/$file': typeof PreviewsFileRoute
   '/studio/print': typeof StudioPrintRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/create'
     | '/faq'
+    | '/journey'
     | '/story'
     | '/previews/$file'
     | '/studio/print'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/create'
     | '/faq'
+    | '/journey'
     | '/story'
     | '/previews/$file'
     | '/studio/print'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/create'
     | '/faq'
+    | '/journey'
     | '/story'
     | '/previews/$file'
     | '/studio/print'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CreateRoute: typeof CreateRoute
   FaqRoute: typeof FaqRoute
+  JourneyRoute: typeof JourneyRoute
   StoryRoute: typeof StoryRoute
   PreviewsFileRoute: typeof PreviewsFileRoute
   StudioPrintRoute: typeof StudioPrintRoute
@@ -221,6 +234,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journey': {
+      id: '/journey'
+      path: '/journey'
+      fullPath: '/journey'
+      preLoaderRoute: typeof JourneyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/story': {
@@ -281,6 +301,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CreateRoute: CreateRoute,
   FaqRoute: FaqRoute,
+  JourneyRoute: JourneyRoute,
   StoryRoute: StoryRoute,
   PreviewsFileRoute: PreviewsFileRoute,
   StudioPrintRoute: StudioPrintRoute,

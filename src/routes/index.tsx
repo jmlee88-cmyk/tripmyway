@@ -45,9 +45,9 @@ function Home() {
             <Button asChild variant="editorial-outline" size="xl"><Link to="/styles">Explore Styles</Link></Button>
           </div>
           <p className="mt-6 text-sm text-muted-foreground">
-            Have more than one place in mind?{" "}
-            <Link to="/story" className="text-foreground underline underline-offset-4">Tell us your story</Link>{" "}
-            and we'll suggest a print — or a set of three.
+            Mapping a whole trip?{" "}
+            <Link to="/journey" className="text-foreground underline underline-offset-4">Map your journey</Link>{" "}
+            from your itinerary, every stop in order.
           </p>
         </div>
         <img src={hero} alt="Three framed map prints in a warm living room" width={1600} height={1104} className="w-full" />

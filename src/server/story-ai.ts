@@ -115,7 +115,8 @@ export function buildStoryRequest(story: string) {
   };
 }
 
-const clean = (v: unknown, max: number) =>
+/** Plain text only: no control characters or angle brackets, whitespace collapsed, clamped. */
+export const clean = (v: unknown, max: number) =>
   typeof v === "string"
     ? v
         // eslint-disable-next-line no-control-regex -- strip control characters
@@ -185,7 +186,7 @@ export function parseRecommendation(input: unknown, story = ""): StoryRecommenda
  * (Chinese, Japanese, Cyrillic…) is replaced by the model's English version.
  */
 const LATIN = /^[\p{Script=Latin}\p{N}\p{P}\p{Zs}\p{Sk}'’&]*$/u;
-function printableTitle(title: unknown, english: unknown) {
+export function printableTitle(title: unknown, english: unknown) {
   const t = clean(title, TITLE_MAX).replace(/["“”]/g, "");
   if (LATIN.test(t)) return t;
   const e = clean(english, TITLE_MAX).replace(/["“”]/g, "");

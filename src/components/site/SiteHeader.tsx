@@ -5,7 +5,7 @@ import { cartCount, useCart } from "@/lib/cart";
 
 const NAV = [
   { to: "/create", label: "Create" },
-  { to: "/story", label: "Your Story" },
+  { to: "/journey", label: "Map Your Journey" },
   { to: "/styles", label: "Styles" },
   { to: "/about", label: "About" },
   { to: "/faq", label: "FAQ" },

@@ -172,9 +172,9 @@ function CreatePage() {
           </p>
         ) : (
           <p className="mt-3 text-sm text-muted-foreground">
-            Not sure where to start?{" "}
-            <Link to="/story" className="text-foreground underline underline-offset-4">Tell us your story</Link>{" "}
-            and we'll suggest a print.
+            Mapping a whole trip?{" "}
+            <Link to="/journey" className="text-foreground underline underline-offset-4">Map your journey</Link>{" "}
+            from your itinerary.
           </p>
         )}
       </div>

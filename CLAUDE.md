@@ -44,9 +44,23 @@ Cloudflare Worker (`wrangler.jsonc`), R2 for preview images.
 
 ## 2. New for TripMyWay
 
-- **Frontend & brand:** new home page, header, about/FAQ, colours and type. Drop the
-  Atlas & Ink "Tell us your story" flow (`story.tsx`, `server/story-ai.ts`, `config/story.ts`)
-  unless reused deliberately.
+- **Frontend & brand:** new home page, header, about/FAQ, colours and type.
+- **Map Your Journey** (decided and built Oct 18 2026) replaces "Your Story" in the menu:
+  `/journey` (`routes/journey.tsx`; `/story` redirects there). The customer pastes an
+  itinerary or writes a few sentences; one Claude call (`server/journey-ai.ts`, settings
+  in `config/journey.ts`, client `lib/journey.ts`) returns the stops in order with labels,
+  dates and a suggested title, or ONE follow-up question (ambiguous town, vague place, or
+  more than 7 stops → "which 7?"). Same safeguards as the Atlas story AI: forced tool
+  call, output validated and clamped, ambiguous town names checked in code, no guessed
+  places; a place visited twice is marked once. Stops are geocoded (`findPlace`), can be
+  corrected or renamed, get a photo each, and the real trip print (`TripPrintPreview`)
+  plus fit/split advice from `plansBySize` show beside them. The page teaches three ways
+  to write a trip (day-by-day list, just places, a few sentences) with "use this example".
+  - Needs the Worker secret `ANTHROPIC_API_KEY` on `tripmyway` (set by Jerry in
+    Cloudflare); without it the page explains the reader isn't switched on yet.
+  - The old story code (`server/story-ai.ts`, `lib/story.ts`, `config/story.ts`) stays:
+    journey-ai reuses its `clean`, `ambiguousName` and `printableTitle`, and `create.tsx`
+    still reads story drafts (now never written).
 - **Print theme:** new map styles added in `src/config/map-styles.ts` (data only).
 - **Trip editor UI:** add destinations in order, choose one map for the whole trip or
   one map per destination, attach a photo per destination, preview the combined print.
