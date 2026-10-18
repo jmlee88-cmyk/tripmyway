@@ -112,6 +112,8 @@ them **alongside** the existing code, without changing how single prints behave:
   "Trip Map Diptych (Set of Two)", "Trip Map Triptych (Set of Three)". Prices = Atlas & Ink's
   (`FINISH_PRICES` + `FRAME_PRICES` when framed), × 2 for diptych and × 3 for triptych.
   `"diptych"` added to `PrintFormat` / `PRINT_FORMATS`; checkout picks the format by panel count.
+  Verified live Oct 18: cartCreate prices match (e.g. set of two 18 × 24 paper = $178) and /cart →
+  Checkout hands off to the TripMyWay store, which shows its password page until a paid plan is picked.
 - Shopify app: deploy a separate app (or reuse) for the order-page preview.
 
 ## 5. Decisions made
