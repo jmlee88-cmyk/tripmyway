@@ -18,6 +18,7 @@
     "rolldown": "1.2.1"
   },
   "dependencies": {
+    "@cloudflare/containers": "0.3.7",
     "@hookform/resolvers": "^5.2.2",
     "@mapbox/vector-tile": "^3.0.0",
     "@maplibre/maplibre-gl-style-spec": "^26.4.4",
@@ -81,6 +82,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20260930.2",
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "2.25.2",
     "@testing-library/jest-dom": "^6.6.0",

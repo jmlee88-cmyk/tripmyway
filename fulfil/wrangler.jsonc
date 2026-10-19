@@ -1,0 +1,37 @@
+{
+  // tripmyway-fulfil: paid Shopify orders → print files → ArtBeat. See fulfil/README.md.
+  "name": "tripmyway-fulfil",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-05",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "vars": {
+    // "dev" until ArtBeat's live API is confirmed; then "live".
+    "ARTBEAT_ENV": "dev",
+    "PUBLIC_URL": "https://tripmyway-fulfil.jerry-912.workers.dev",
+    "SUBMIT_TEST_ORDERS": "false"
+  },
+  // Print converter (Node + Poppler + libvips). Built from the repo root so it
+  // can bundle the site's own print renderer and fonts.
+  "containers": [
+    {
+      "class_name": "PrintConverter",
+      "image": "./container/Dockerfile",
+      "image_build_context": "..",
+      "instance_type": "standard-2",
+      "max_instances": 2
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "CONVERTER", "class_name": "PrintConverter" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PrintConverter"] }],
+  "queues": {
+    "producers": [{ "binding": "ORDERS", "queue": "tripmyway-orders" }],
+    "consumers": [
+      { "queue": "tripmyway-orders", "max_batch_size": 1, "max_retries": 6, "max_concurrency": 2 }
+    ]
+  },
+  // Order records and print files (a lifecycle rule deletes files after 14 days).
+  "r2_buckets": [{ "binding": "PRINTFILES", "bucket_name": "tripmyway-printfiles" }]
+}

@@ -1,0 +1,7 @@
+# Build context for fulfil/container/Dockerfile (the repo root).
+node_modules
+.output
+.wrangler
+.git
+dist
+**/*.test.ts

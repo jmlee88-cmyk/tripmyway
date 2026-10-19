@@ -7,7 +7,7 @@ import type { MapStyleConfig } from "@/types/product";
  * Tile source is configurable via VITE_MAP_TILES_URL.
  */
 export const TILE_SOURCE_URL =
-  (import.meta.env["VITE_MAP_TILES_URL"] as string | undefined) ?? "https://tiles.openfreemap.org/planet";
+  (import.meta.env?.["VITE_MAP_TILES_URL"] as string | undefined) ?? "https://tiles.openfreemap.org/planet";
 
 const w = (stops: [number, number][]) =>
   ["interpolate", ["exponential", 1.6], ["zoom"], ...stops.flat()] as unknown as number;

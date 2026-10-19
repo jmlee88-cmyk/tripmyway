@@ -37,8 +37,8 @@ export const PRINT_FINISHES: FinishOption[] = [
 
 export const DEFAULT_FINISH: PrintFinish = "paper";
 
-/** Gallery wrap for canvas print files: 1.5" frame depth + 0.5" folded round the back. */
-export const CANVAS_WRAP_IN = 2;
+/** Gallery wrap for canvas print files: ArtBeat's 1.5" wrap with mirrored edges. */
+export const CANVAS_WRAP_IN = 1.5;
 
 export function getFinish(id: PrintFinish | undefined): FinishOption {
   return PRINT_FINISHES.find((f) => f.id === id) ?? PRINT_FINISHES[0]!;

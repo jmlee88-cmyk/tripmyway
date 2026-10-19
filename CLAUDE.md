@@ -254,6 +254,19 @@ them **alongside** the existing code, without changing how single prints behave:
     print; 280 px photo refused at 18 × 24. HEIC (rotated, with GPS) verified in headless Chromium.
   - Trip add-to-cart, `/studio/trip` and upload rate limits are built (see sections 2 and 4).
 
+- **ArtBeat fulfilment (built Oct 19 2026, not yet deployed):** `fulfil/` is a separate Worker,
+  `tripmyway-fulfil` (see `fulfil/README.md`): Shopify "order paid" webhook (HMAC checked) → queue →
+  `PrintConverter` container (site's trip renderer → PDF → pdftoppm → 300 ppi JPEG; canvas gets a 1.5″
+  mirrored edge in the file) → R2 `tripmyway-printfiles` → ArtBeat partner API
+  (`/api/partner/orders`, key `af.<vendor>.<secret>`), one line per print, never a price; status page
+  `/status?token=` with "Send again". Logic in `src/lib/fulfil/` (tested), settings in
+  `src/config/artbeat.ts` (product codes still empty: they come from ArtBeat's API page).
+  ArtBeat answers (Oct 19): accepted orders become real orders; card on file is charged; files JPG/PNG/TIF
+  (not PDF), consumed within 48 h; canvas 1.5″ wrap with mirrored edge; ArtBeat pushes fulfilment and
+  tracking to Shopify; packing is theirs; print cost covers shipping (free shipping or a small fee is our
+  choice in Shopify); frames as on artbeatstudios.com/pages/custom-frames (matches ours).
+  `CANVAS_WRAP_IN` is now 1.5. Single-place (v1) designs aren't automated: they're flagged for the studio.
+
 ## 6. Open decisions
 
 - Pricing for trip prints with photos.

@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["src/**/*.ts", "container/**/*.ts"],
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "types": ["@cloudflare/workers-types", "node", "vite/client"],
+    "baseUrl": ".",
+    "paths": { "@/*": ["../src/*"] }
+  }
+}
