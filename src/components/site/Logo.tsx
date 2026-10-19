@@ -19,11 +19,13 @@ export function TPin({
   );
 }
 
-/** The full mark, same drawing as public/favicon.svg: the T-pin on a folded map. */
+/**
+ * The mark: the T-pin on a folded map, as in public/favicon.svg but without
+ * the favicon's navy tile, so it sits on any background.
+ */
 export function LogoMark({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 64 64" aria-hidden className={className}>
-      <rect width="64" height="64" rx="14" fill="var(--color-ink)" />
+    <svg viewBox="5.5 4.5 53 59" aria-hidden className={className}>
       <path d="M7 25 L22 20 L22 56 L7 60 Z" fill="#EFE8D6" />
       <path d="M22 20 L42 26 L42 62 L22 56 Z" fill="#D9CBA6" />
       <path d="M42 26 L57 21 L57 57 L42 62 Z" fill="#EFE8D6" />
@@ -57,9 +59,7 @@ export function Logo({
 }) {
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
-      <LogoMark
-        className={`h-[1.5em] w-auto ${inverse ? "rounded-[0.35em] ring-1 ring-white/25" : ""}`}
-      />
+      <LogoMark className="h-[1.5em] w-auto" />
       <span className="font-display font-bold tracking-[-0.03em]">TripMyWay</span>
     </span>
   );
