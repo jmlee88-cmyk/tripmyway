@@ -605,7 +605,10 @@ export function autoTripLine(
         : `stop ${start + 1}`;
     return `Part ${part + 1} of ${parts} · ${route} · ${range}${when}`;
   }
-  return `${route} · ${panelStops.length} stop${panelStops.length > 1 ? "s" : ""}${when}`;
+  // A location map (one place) names where it is; A to B needs no count; longer trips give one.
+  if (panelStops.length === 1) return `${first.location.formattedAddress}${when}`;
+  if (panelStops.length === 2) return `${route}${when}`;
+  return `${route} · ${panelStops.length} stops${when}`;
 }
 
 /** Break mark: "≈ 8,300 km to Tokyo →" / "← From San Francisco · ≈ 8,300 km" (words when the font lacks the symbols). */

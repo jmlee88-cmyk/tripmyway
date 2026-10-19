@@ -201,7 +201,13 @@ function TripRow({ item }: { item: CartItem }) {
         </div>
       </div>
       <div className="min-w-0">
-        <p className="eyebrow">{prints > 1 ? `Trip print, set of ${prints}` : "Trip print"}</p>
+        <p className="eyebrow">
+          {t.stops.length === 1
+            ? "Location map"
+            : prints > 1
+              ? `Trip map, set of ${prints}`
+              : "Trip map"}
+        </p>
         <h2 className="text-2xl">{t.title}</h2>
         <ol className="mt-2 flex flex-wrap gap-x-2 text-sm text-muted-foreground">
           {t.stops.map((s, i) => (

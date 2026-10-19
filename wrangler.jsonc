@@ -8,6 +8,12 @@
   // Map preview images (one PNG per design), served by the site at /previews/…
   "r2_buckets": [{ "binding": "PREVIEWS", "bucket_name": "tripmyway-previews" },
     { "binding": "PHOTOS", "bucket_name": "tripmyway-photos" }],
+  // Per-visitor limits (counted by Cloudflare across instances): photo and
+  // preview uploads, and trip readings (each one is a paid AI call).
+  "ratelimits": [
+    { "name": "UPLOAD_LIMIT", "namespace_id": "1001", "simple": { "limit": 40, "period": 60 } },
+    { "name": "JOURNEY_LIMIT", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } }
+  ],
   // Required by `wrangler preview`, which Workers Builds runs for
   // non-production branches. Bindings aren't inherited, so list them here too.
   "previews": {

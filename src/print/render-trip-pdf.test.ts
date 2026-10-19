@@ -117,6 +117,11 @@ describe("trip text", () => {
       "Part 2 of 2 · Tokyo to Osaka · stops 4–6",
     );
   });
+  it("names the place on a location map and skips the count from A to B", () => {
+    expect(autoTripLine(ITALY_STOPS.slice(5, 6), 0, 1, 0)).toBe("Rome");
+    expect(autoTripLine(ITALY_STOPS.slice(0, 1), 0, 1, 0)).toBe("Milan · Jun 3");
+    expect(autoTripLine(ITALY_STOPS.slice(5, 7), 0, 1, 0)).toBe("Rome → Amalfi · Jun 18");
+  });
   it("writes break marks, with words when the font lacks the symbols", () => {
     expect(breakText("to", "Tokyo", 8266, { arrows: true, approx: true })).toBe(
       "≈ 8,300 KM TO TOKYO →",

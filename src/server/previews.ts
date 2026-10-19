@@ -4,6 +4,8 @@
  * design, so the same design is stored once and re-uploads are harmless.
  */
 
+import { cloudflareLimited } from "./runtime";
+
 interface R2ObjectBody {
   body: ReadableStream;
   httpEtag: string;
@@ -45,6 +47,9 @@ export async function handleUpload(request: Request, key: string): Promise<Respo
   if (!isPreviewKey(key)) return json(400, { error: "Bad preview id." });
   const store = bucket();
   if (!store) return json(503, { error: "Preview storage isn't configured." });
+  const ip = request.headers.get("cf-connecting-ip") ?? "anon";
+  if (await cloudflareLimited("UPLOAD_LIMIT", `upload:${ip}`))
+    return json(429, { error: "Too many previews at once. Please wait a minute and try again." });
   const url = `${self}/previews/${key}.png`;
   if (await store.head(`${key}.png`)) return json(200, { url });
   const declared = Number(request.headers.get("content-length") ?? "0");

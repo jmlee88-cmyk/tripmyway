@@ -9,6 +9,7 @@
 import { PRINT_SIZES } from "@/config/products";
 import { TRIP } from "@/config/trip";
 import { photoNeedPx } from "@/lib/trip/photos";
+import { cloudflareLimited } from "./runtime";
 
 interface R2Object {
   customMetadata?: Record<string, string> | undefined;
@@ -85,6 +86,9 @@ export async function handleUpload(
   if (origin && origin !== self) return json(403, { error: "Cross-site upload refused." });
   if (!isPhotoKey(key)) return json(400, { error: "Bad photo id." });
   if (!store) return json(503, { error: "Photo storage isn't configured." });
+  const ip = request.headers.get("cf-connecting-ip") ?? "anon";
+  if (await cloudflareLimited("UPLOAD_LIMIT", `upload:${ip}`))
+    return json(429, { error: "Too many photos at once. Please wait a minute and try again." });
   const url = `${self}/photos/${key}.jpg`;
 
   const existing = await store.head(`${key}.jpg`);

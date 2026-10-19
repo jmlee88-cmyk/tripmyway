@@ -46,3 +46,20 @@ export function rateLimited(
   if (hits.size > 5000) hits.clear();
   return false;
 }
+
+/**
+ * Cloudflare's rate limiting binding (wrangler.jsonc "ratelimits"), counted
+ * across all Worker instances at that location. True when `key` is over the
+ * binding's limit. Not configured (local dev, tests): never limited.
+ */
+export async function cloudflareLimited(binding: string, key: string): Promise<boolean> {
+  const cf = (globalThis as { __env__?: Record<string, unknown> }).__env__;
+  const rl = cf?.[binding] as
+    { limit?: (o: { key: string }) => Promise<{ success: boolean }> } | undefined;
+  if (!rl?.limit) return false;
+  try {
+    return !(await rl.limit({ key })).success;
+  } catch {
+    return false;
+  }
+}

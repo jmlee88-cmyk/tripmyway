@@ -1,7 +1,14 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from "react";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CircleHelp, X } from "lucide-react";
 import type { FrameColor, Location, PrintFinish, PrintSizeId } from "@/types/product";
 import type { TripDesign, TripPhoto, TripStop } from "@/types/trip";
 import { DEFAULT_STYLE_ID } from "@/config/map-styles";
@@ -26,6 +33,8 @@ import { LocationSearch } from "@/components/editor/LocationSearch";
 import { TripPhotoField } from "@/components/trip/TripPhotoField";
 import { TripPrintPreview } from "@/components/trip/TripPrintPreview";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { startTripTour, tourSeen } from "./trip-tour";
 
 /** One stop as the customer edits it (found on the map, or still being looked up). */
 export interface StopDraft {
@@ -78,6 +87,17 @@ export function TripEditor({
   const [frame, setFrame] = useState<FrameColor>("none");
   const [stripPrints, setStripPrints] = useState<number[]>([]);
   const [showErrors, setShowErrors] = useState(false);
+  // Empty photo spots in the preview (never printed); the customer can hide them.
+  const [showSpots, setShowSpots] = useState(true);
+
+  // First visit: a short tour; a second one once the first stop is on the list.
+  const hasStops = stops.length > 0;
+  useEffect(() => {
+    const kind = hasStops ? "stop" : "start";
+    if (tourSeen(kind)) return;
+    const t = setTimeout(() => void startTripTour(kind), hasStops ? 900 : 700);
+    return () => clearTimeout(t);
+  }, [hasStops]);
 
   const patch = (i: number, p: Partial<StopDraft>) =>
     setStops((ds) => ds.map((d, j) => (j === i ? { ...d, ...p } : d)));
@@ -155,7 +175,9 @@ export function TripEditor({
       return;
     }
     try {
-      addTripToCart(design);
+      const item = addTripToCart(design);
+      // Draw the order preview image in the background (it goes on the order and in emails).
+      void import("@/lib/preview").then((m) => m.ensurePreview(item));
       toast("Added to your cart", { description: `${design.title}, ${size.label} in` });
       void navigate({ to: "/cart" });
     } catch (e) {
@@ -166,15 +188,26 @@ export function TripEditor({
   return (
     <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
       <div className="min-w-0">
-        <label className="block">
+        <div className="flex items-center justify-between gap-4">
           <span className="eyebrow">Trip name</span>
+          <button
+            type="button"
+            onClick={() => void startTripTour(hasStops ? "stop" : "start")}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
+          >
+            <CircleHelp className="h-4 w-4" />
+            Show me how
+          </button>
+        </div>
+        <label className="block" data-tour="title">
+          <span className="sr-only">Trip name</span>
           <input
             id="trip-title"
             value={title}
             maxLength={TITLE_MAX}
             placeholder="Name your trip"
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full rounded-xl border-2 border-transparent bg-transparent px-0 py-1 font-display text-4xl font-bold tracking-[-0.03em] outline-none transition-colors placeholder:text-muted-foreground/50 hover:border-b-border focus:border-b-foreground md:text-5xl"
+            className="w-full rounded-xl border-2 border-transparent bg-transparent px-0 py-1 font-display text-4xl font-bold tracking-[-0.03em] outline-none transition-colors placeholder:text-muted-foreground/50 hover:border-b-border focus:border-b-foreground md:text-5xl"
           />
         </label>
         {notice}
@@ -191,7 +224,7 @@ export function TripEditor({
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <label className="min-w-0 flex-1">
+                    <label className="min-w-0 flex-1" data-tour={i === 0 ? "stop-name" : undefined}>
                       <span className="sr-only">Stop {i + 1} name</span>
                       <input
                         id={`stop-${i}-label`}
@@ -201,7 +234,7 @@ export function TripEditor({
                         className="w-full border-b-2 border-transparent bg-transparent py-0.5 font-display text-2xl font-semibold outline-none transition-colors hover:border-border focus:border-foreground"
                       />
                     </label>
-                    <label>
+                    <label data-tour={i === 0 ? "stop-date" : undefined}>
                       <span className="sr-only">Stop {i + 1} date</span>
                       <input
                         id={`stop-${i}-date`}
@@ -212,7 +245,10 @@ export function TripEditor({
                         className="w-28 border-b-2 border-transparent bg-transparent py-0.5 text-sm text-muted-foreground outline-none transition-colors placeholder:text-muted-foreground/70 hover:border-border focus:border-foreground"
                       />
                     </label>
-                    <div className="flex items-center">
+                    <div
+                      className="flex items-center"
+                      data-tour={i === 0 ? "stop-tools" : undefined}
+                    >
                       <IconButton
                         label={`Move ${d.label} earlier`}
                         disabled={i === 0}
@@ -253,7 +289,7 @@ export function TripEditor({
                   {d.lookup === "found" && (
                     <ChangePlace onSelect={(l) => patch(i, { location: l })} />
                   )}
-                  <div className="mt-2">
+                  <div className="mt-2 self-start" data-tour={i === 0 ? "stop-photo" : undefined}>
                     <TripPhotoField
                       photo={d.photo}
                       sizeId={printSize}
@@ -266,7 +302,10 @@ export function TripEditor({
             </li>
           ))}
           {stops.length < TRIP.maxStops ? (
-            <li className="rounded-2xl border-2 border-dashed border-border p-4 md:p-5">
+            <li
+              className="rounded-2xl border-2 border-dashed border-border p-4 md:p-5"
+              data-tour="add-stop"
+            >
               <div className="flex items-start gap-3">
                 <span
                   aria-hidden
@@ -278,6 +317,12 @@ export function TripEditor({
                   <p className="font-display text-xl font-semibold">
                     {stops.length === 0 ? "Where did your trip start?" : "Where did you go next?"}
                   </p>
+                  {stops.length === 1 && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      One place makes a location map, mapped up close. Add another stop to map a
+                      trip.
+                    </p>
+                  )}
                   <div className="mt-2">
                     <LocationSearch
                       compact
@@ -298,10 +343,23 @@ export function TripEditor({
       </div>
 
       <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
-        <div className="rounded-[22px] bg-stage p-4 sm:p-6">
+        {design && (
+          <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
+            <span className="rounded-full bg-pin px-3 py-1 text-ink">
+              {design.stops.length === 1 ? "Location map" : "Trip map"}
+            </span>
+            <span className="text-muted-foreground">
+              {design.stops.length === 1
+                ? "One place"
+                : `${design.stops.length} stops${prints > 1 ? `, set of ${prints} prints` : ""}`}
+            </span>
+          </p>
+        )}
+        <div className="rounded-[22px] bg-stage p-4 sm:p-6" data-tour="preview">
           {previewDesign ? (
             <TripPrintPreview
               design={previewDesign}
+              placeholders={showSpots}
               onRendered={(r) =>
                 setStripPrints(r.placements.flatMap((p, k) => (p.mode === "strip" ? [k + 1] : [])))
               }
@@ -317,10 +375,29 @@ export function TripEditor({
           )}
         </div>
 
+        {design && design.stops.some((st) => !st.photo) && (
+          <label
+            className="mt-4 flex items-start gap-3 rounded-xl bg-muted px-4 py-3 text-sm"
+            data-tour="spots"
+          >
+            <Switch checked={showSpots} onCheckedChange={setShowSpots} className="mt-0.5" />
+            <span>
+              <span className="font-semibold">Show empty photo spots</span>
+              <span className="block text-muted-foreground">
+                Spots without a photo aren't printed; those stops just get their name.
+              </span>
+            </span>
+          </label>
+        )}
+
         {plan && (
           <div className="mt-4 text-sm leading-relaxed" aria-live="polite">
             {plan.panels.length === 1 ? (
-              <p>Your whole trip fits on one {size.label} print.</p>
+              <p>
+                {design?.stops.length === 1
+                  ? `Your location map is a ${size.label} print.`
+                  : `Your whole trip fits on one ${size.label} print.`}
+              </p>
             ) : (
               <p>
                 Your trip covers a lot of ground, so it's mapped across {plan.panels.length} prints
@@ -354,99 +431,101 @@ export function TripEditor({
           </div>
         )}
 
-        <fieldset className="mt-8">
-          <legend className="font-display text-lg font-bold">Size</legend>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {PRINT_SIZES.map((s) => {
-              const blocked = stops.some((d) => d.photo && photoTooSmall(d.photo, s.id));
-              const n = printsAt(s.id);
-              const on = s.id === printSize;
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  aria-pressed={on}
-                  disabled={blocked}
-                  title={blocked ? "A photo is too small for this size" : undefined}
-                  onClick={() => setPrintSize(s.id)}
-                  className={`rounded-xl border-2 px-3 py-2.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${on ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/50"}`}
-                >
-                  <span className="block text-sm font-semibold">{s.label} in</span>
-                  <span
-                    className={`block text-xs ${on ? "text-background/75" : "text-muted-foreground"}`}
+        <div data-tour="order">
+          <fieldset className="mt-8">
+            <legend className="font-display text-lg font-bold">Size</legend>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {PRINT_SIZES.map((s) => {
+                const blocked = stops.some((d) => d.photo && photoTooSmall(d.photo, s.id));
+                const n = printsAt(s.id);
+                const on = s.id === printSize;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    aria-pressed={on}
+                    disabled={blocked}
+                    title={blocked ? "A photo is too small for this size" : undefined}
+                    onClick={() => setPrintSize(s.id)}
+                    className={`rounded-xl border-2 px-3 py-2.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${on ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/50"}`}
                   >
-                    {blocked
-                      ? "Photo too small"
-                      : `$${formatPrice(s.id, n, finish, frameNow)}${n > 1 ? `, set of ${n}` : ""}`}
-                  </span>
+                    <span className="block text-sm font-semibold">{s.label} in</span>
+                    <span
+                      className={`block text-xs ${on ? "text-background/75" : "text-muted-foreground"}`}
+                    >
+                      {blocked
+                        ? "Photo too small"
+                        : `$${formatPrice(s.id, n, finish, frameNow)}${n > 1 ? `, set of ${n}` : ""}`}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          <fieldset className="mt-6">
+            <legend className="font-display text-lg font-bold">Finish</legend>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {PRINT_FINISHES.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  aria-pressed={f.id === finish}
+                  onClick={() => setFinish(f.id)}
+                  className={`rounded-xl border-2 px-3 py-2.5 text-sm font-semibold transition-colors ${f.id === finish ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/50"}`}
+                >
+                  {f.short}
                 </button>
-              );
-            })}
-          </div>
-        </fieldset>
-
-        <fieldset className="mt-6">
-          <legend className="font-display text-lg font-bold">Finish</legend>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {PRINT_FINISHES.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                aria-pressed={f.id === finish}
-                onClick={() => setFinish(f.id)}
-                className={`rounded-xl border-2 px-3 py-2.5 text-sm font-semibold transition-colors ${f.id === finish ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/50"}`}
-              >
-                {f.short}
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {PRINT_FINISHES.find((f) => f.id === finish)?.description}
-          </p>
-        </fieldset>
-
-        <fieldset className="mt-6">
-          <legend className="font-display text-lg font-bold">Frame</legend>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {(["none", ...frameStyle.colors] as FrameColor[]).map((c) => (
-              <button
-                key={c}
-                type="button"
-                aria-pressed={c === frameNow}
-                onClick={() => setFrame(c)}
-                className={`rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors ${c === frameNow ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/50"}`}
-              >
-                {FRAME_COLOR_LABELS[c]}
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {frameNow === "none"
-              ? `${frameStyle.label}: +$${framePrice(printSize, finish) * prints} at ${size.label} in.`
-              : frameStyle.description}
-          </p>
-        </fieldset>
-
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t-2 border-border pt-6">
-          <div>
-            <p className="font-display text-3xl font-bold">${price}</p>
-            <p className="text-sm text-muted-foreground">
-              {prints > 1 ? `Set of ${prints} prints, ` : ""}
-              {size.label} in, {PRINT_FINISHES.find((f) => f.id === finish)?.label.toLowerCase()}
-              {frameNow !== "none" ? `, ${FRAME_COLOR_LABELS[frameNow].toLowerCase()} frame` : ""}
+              ))}
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {PRINT_FINISHES.find((f) => f.id === finish)?.description}
             </p>
+          </fieldset>
+
+          <fieldset className="mt-6">
+            <legend className="font-display text-lg font-bold">Frame</legend>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(["none", ...frameStyle.colors] as FrameColor[]).map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-pressed={c === frameNow}
+                  onClick={() => setFrame(c)}
+                  className={`rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors ${c === frameNow ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/50"}`}
+                >
+                  {FRAME_COLOR_LABELS[c]}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {frameNow === "none"
+                ? `${frameStyle.label}: +$${framePrice(printSize, finish) * prints} at ${size.label} in.`
+                : frameStyle.description}
+            </p>
+          </fieldset>
+
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t-2 border-border pt-6">
+            <div>
+              <p className="font-display text-3xl font-bold">${price}</p>
+              <p className="text-sm text-muted-foreground">
+                {prints > 1 ? `Set of ${prints} prints, ` : ""}
+                {size.label} in, {PRINT_FINISHES.find((f) => f.id === finish)?.label.toLowerCase()}
+                {frameNow !== "none" ? `, ${FRAME_COLOR_LABELS[frameNow].toLowerCase()} frame` : ""}
+              </p>
+            </div>
+            <Button variant="editorial" size="xl" onClick={onAdd} disabled={!design}>
+              Add to cart
+            </Button>
           </div>
-          <Button variant="editorial" size="xl" onClick={onAdd} disabled={!design}>
-            Add to cart
-          </Button>
+          {showErrors && errors.length > 0 && (
+            <ul role="alert" className="mt-3 flex flex-col gap-1 text-sm text-destructive">
+              {errors.map((e) => (
+                <li key={e}>{e}</li>
+              ))}
+            </ul>
+          )}
         </div>
-        {showErrors && errors.length > 0 && (
-          <ul role="alert" className="mt-3 flex flex-col gap-1 text-sm text-destructive">
-            {errors.map((e) => (
-              <li key={e}>{e}</li>
-            ))}
-          </ul>
-        )}
       </div>
     </div>
   );

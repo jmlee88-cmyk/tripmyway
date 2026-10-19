@@ -22,7 +22,8 @@ export const readJourney = createServerFn({ method: "POST" })
       data,
     }): Promise<{ ok: true; result: JourneyReading } | { ok: false; error: string }> => {
       const { readJourneyText, JourneyError } = await import("@/server/journey-ai");
-      const { serverEnv, clientKey, rateLimited } = await import("@/server/runtime");
+      const { serverEnv, clientKey, rateLimited, cloudflareLimited } =
+        await import("@/server/runtime");
       if (data.text.length < JOURNEY.minLength)
         return {
           ok: false,
@@ -36,7 +37,10 @@ export const readJourney = createServerFn({ method: "POST" })
           error: "Our trip reader isn't switched on yet. Please check back soon.",
         };
       }
-      if (rateLimited(`journey:${clientKey()}`, JOURNEY.rateLimit))
+      if (
+        rateLimited(`journey:${clientKey()}`, JOURNEY.rateLimit) ||
+        (await cloudflareLimited("JOURNEY_LIMIT", `journey:${clientKey()}`))
+      )
         return {
           ok: false,
           error: "That's a lot of trips in a short time. Please try again in a few minutes.",

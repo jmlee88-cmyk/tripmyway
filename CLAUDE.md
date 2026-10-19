@@ -60,11 +60,23 @@ Cloudflare Worker (`wrangler.jsonc`), R2 for preview images.
   per stop, live trip print, fit/split advice, size (blocked when a photo is too small), finish, frame,
   price and Add to cart. The draft is kept in localStorage (`tripmyway-trip-draft-v1`); `?style=` sets
   the map style.
+  - Guided tour (driver.js 1.8.0, MIT; intro.js is AGPL so not used): `components/trip/trip-tour.ts`.
+    A "start" tour (trip name, add stop, preview) on a first visit and a "stop" tour (rename, date,
+    photo, reorder, empty photo spots, order options) once a stop exists; each once per browser,
+    replayable with "Show me how". Steps target `data-tour` attributes.
+  - "Show empty photo spots" switch: the grey circles are preview-only (never printed); turning
+    them off shows exactly what prints.
+  - **Naming (decided Oct 18 2026):** one place = a **Location map** (chip above the preview, cart
+    label, "Format: Location map" on the order, "Location map print" product name; its print line
+    is the place's address). Every place counts as a stop, so A → B is 2 stops; its print line is
+    just "Lisbon → Porto" (no count). Counts appear from 3 stops.
 - **Trip prints in the cart (built Oct 18 2026):** `src/lib/trip-cart.ts`, alongside the single-print
   cart. `CartItem.trip` + `tripPrints`; `customization` holds a stand-in from the first stop. The
   Shopify product follows the deterministic plan (1 → single, 2 → diptych, 3 → triptych), priced per
   print. Line properties: Trip, Stops, Photos, Format, Style, Size, Finish, Frame; `_design` is
-  `{v: 2, trip}` with photo URLs/keys and crops (no image data). No `_preview` image for trips yet.
+  `{v: 2, trip}` with photo URLs/keys and crops (no image data). `_preview`: a PNG of every print
+  of the trip side by side (`lib/preview.ts`, drawn from the real print file without empty photo
+  spots), made in the background on add to cart and before checkout.
   Fulfilment: `/studio/trip` (noindex) turns a pasted `_design` into the print PDF with bleed.
 - **Map Your Journey** (decided and built Oct 18 2026) replaces "Your Story" in the menu:
   `/journey` (`routes/journey.tsx`; `/story` redirects there). The customer pastes an
@@ -86,8 +98,7 @@ Cloudflare Worker (`wrangler.jsonc`), R2 for preview images.
     geocoding treats St./Saint, Mt./Mount, Ft./Fort, Ste./Sainte as the same (St. Louis
     had matched Washington University).
   - The old story code (`server/story-ai.ts`, `lib/story.ts`, `config/story.ts`) stays:
-    journey-ai reuses its `clean`, `ambiguousName` and `printableTitle`, and `create.tsx`
-    still reads story drafts (now never written).
+    journey-ai reuses its `clean`, `ambiguousName` and `printableTitle`.
 - **Print theme:** new map styles added in `src/config/map-styles.ts` (data only).
 - **Trip editor UI:** add destinations in order, choose one map for the whole trip or
   one map per destination, attach a photo per destination, preview the combined print.
@@ -138,6 +149,11 @@ them **alongside** the existing code, without changing how single prints behave:
 - **Done (Oct 18 2026): customer photo storage.** R2 bucket `tripmyway-photos` (binding `PHOTOS`,
   also for preview builds) with a lifecycle rule deleting objects **180 days** after upload (owner's
   decision). Photos for orders must be printed within that window.
+- **Rate limits (Oct 18 2026):** Cloudflare rate limiting bindings in `wrangler.jsonc`: `UPLOAD_LIMIT`
+  (40/min per IP, photo + preview uploads) and `JOURNEY_LIMIT` (10/min per IP, trip readings; plus the
+  in-memory limiter). Helper `cloudflareLimited()` in `server/runtime.ts`; absent bindings never limit.
+- **Styles pages (Oct 18 2026):** index shows each style with an illustrative route; each style page
+  renders the real Italy sample print in that style and links to /create?style=….
 - Shopify app: deploy a separate app (or reuse) for the order-page preview.
 
 ## 5. Decisions made
@@ -236,7 +252,7 @@ them **alongside** the existing code, without changing how single prints behave:
     is capped so the circle stays sharp. `photoProblems()` is there for the cart to re-check.
   - Verified live Oct 18: sideways phone JPEG with GPS → stored upright, no EXIF; crop shows in the
     print; 280 px photo refused at 18 × 24. HEIC (rotated, with GPS) verified in headless Chromium.
-  - Not yet: trip add-to-cart (`_design` with photo URLs), print studio trip mode, upload rate limiting.
+  - Trip add-to-cart, `/studio/trip` and upload rate limits are built (see sections 2 and 4).
 
 ## 6. Open decisions
 

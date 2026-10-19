@@ -25,6 +25,8 @@ import { track } from "@/lib/analytics";
  */
 
 export const TRIP_PRODUCT_NAME = "Trip map print";
+/** A "trip" of one place. */
+export const LOCATION_PRODUCT_NAME = "Location map print";
 
 /** Finish and frame of a trip, with defaults filled in. */
 export function printOptions(design: TripDesign) {
@@ -80,7 +82,7 @@ export function addTripToCart(design: TripDesign): CartItem {
   const price = tripPrice(design, prints);
   const item: CartItem = {
     id: crypto.randomUUID(),
-    name: `${TRIP_PRODUCT_NAME} — ${getMapStyle(design.styleId).name}`,
+    name: `${design.stops.length === 1 ? LOCATION_PRODUCT_NAME : TRIP_PRODUCT_NAME} — ${getMapStyle(design.styleId).name}`,
     customization: standIn(design),
     trip: structuredClone(design),
     tripPrints: prints,
@@ -134,7 +136,12 @@ export function tripLineItemProperties(design: TripDesign, prints: number): Reco
       .map((s, i) => `${i + 1}. ${s.label}${s.date ? ` (${s.date})` : ""}`)
       .join("; "),
     Photos: `${design.stops.filter((s) => s.photo).length} of ${design.stops.length} stops`,
-    Format: prints === 1 ? "Single print" : `Set of ${prints}`,
+    Format:
+      design.stops.length === 1
+        ? "Location map"
+        : prints === 1
+          ? "Single print"
+          : `Set of ${prints}`,
     Style: getMapStyle(design.styleId).name,
     Size: `${size.label} in${prints > 1 ? " each" : ""}`,
     Finish: getFinish(design.finish).label,
