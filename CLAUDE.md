@@ -254,7 +254,7 @@ them **alongside** the existing code, without changing how single prints behave:
     print; 280 px photo refused at 18 × 24. HEIC (rotated, with GPS) verified in headless Chromium.
   - Trip add-to-cart, `/studio/trip` and upload rate limits are built (see sections 2 and 4).
 
-- **ArtBeat fulfilment (built Oct 19 2026, not yet deployed):** `fulfil/` is a separate Worker,
+- **ArtBeat fulfilment (built and deployed Oct 19 2026; waiting on secrets, webhook and product codes):** `fulfil/` is a separate Worker,
   `tripmyway-fulfil` (see `fulfil/README.md`): Shopify "order paid" webhook (HMAC checked) → queue →
   `PrintConverter` container (site's trip renderer → PDF → pdftoppm → 300 ppi JPEG; canvas gets a 1.5″
   mirrored edge in the file) → R2 `tripmyway-printfiles` → ArtBeat partner API
@@ -266,6 +266,11 @@ them **alongside** the existing code, without changing how single prints behave:
   tracking to Shopify; packing is theirs; print cost covers shipping (free shipping or a small fee is our
   choice in Shopify); frames as on artbeatstudios.com/pages/custom-frames (matches ours).
   `CANVAS_WRAP_IN` is now 1.5. Single-place (v1) designs aren't automated: they're flagged for the studio.
+  Cloudflare (Oct 19, Workers Paid): R2 `tripmyway-printfiles` (rule: delete `files/` after 14 days),
+  queue `tripmyway-orders`, Worker `tripmyway-fulfil` via Workers Builds (root `/`, build `bun install`,
+  deploy `npx wrangler deploy --config fulfil/wrangler.jsonc`, preview builds off, "tripmyway build
+  token"), container app `tripmyway-fulfil-printconverter`. Live: https://tripmyway-fulfil.jerry-912.workers.dev
+  (/health ok). The first two builds failed only at container registration (plan upgrade propagating).
 
 ## 6. Open decisions
 
