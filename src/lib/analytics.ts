@@ -22,6 +22,7 @@ export type AnalyticsEvent =
   | "journey_followup_answered"
   | "journey_example_used"
   | "journey_photo_added"
+  | "trip_stop_added"
   | "journey_photo_refused"
   | "journey_photo_cropped"
   | "add_to_cart"

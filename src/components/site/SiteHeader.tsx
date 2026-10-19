@@ -2,12 +2,12 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cartCount, useCart } from "@/lib/cart";
+import { Logo } from "./Logo";
 
 const NAV = [
-  { to: "/create", label: "Create" },
+  { to: "/create", label: "Create a trip map" },
   { to: "/journey", label: "Map Your Journey" },
   { to: "/styles", label: "Styles" },
-  { to: "/about", label: "About" },
   { to: "/faq", label: "FAQ" },
 ] as const;
 
@@ -40,26 +40,35 @@ export function SiteHeader() {
     };
   }, [open]);
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-10">
-        <Link to="/" className="font-display text-2xl tracking-tight" aria-label="TripMyWay home">
-          Trip<span className="italic text-ochre">My</span>Way
+        <Link to="/" className="text-[1.45rem]" aria-label="TripMyWay home">
+          <Logo />
         </Link>
         <nav aria-label="Main" className="hidden items-center gap-9 md:flex">
           {NAV.map((n) => (
             <Link
               key={n.to}
               to={n.to}
-              className="text-sm tracking-wide text-muted-foreground transition-colors hover:text-foreground"
-              activeProps={{ className: "text-foreground" }}
+              className="text-[0.95rem] font-medium text-muted-foreground transition-colors hover:text-foreground"
+              activeProps={{ className: "!text-foreground" }}
             >
               {n.label}
             </Link>
           ))}
         </nav>
         <div className="flex items-center gap-1">
-          <Link to="/cart" className="text-sm tracking-wide">
-            Cart <span className="text-muted-foreground">({count})</span>
+          <Link
+            to="/cart"
+            className="inline-flex h-10 items-center gap-2 rounded-full border-2 border-foreground/15 px-4 text-sm font-semibold transition-colors hover:border-foreground"
+            aria-label={`Cart, ${count} item${count === 1 ? "" : "s"}`}
+          >
+            Cart
+            <span
+              className={`grid h-5 min-w-5 place-items-center rounded-full px-1 text-xs ${count ? "bg-pin text-ink" : "bg-muted text-muted-foreground"}`}
+            >
+              {count}
+            </span>
           </Link>
           <button
             type="button"
@@ -83,8 +92,8 @@ export function SiteHeader() {
             <Link
               key={n.to}
               to={n.to}
-              className="block border-b border-border/60 py-4 font-display text-2xl text-muted-foreground last:border-0"
-              activeProps={{ className: "text-foreground" }}
+              className="block border-b border-border/60 py-4 font-display text-2xl font-semibold text-muted-foreground last:border-0"
+              activeProps={{ className: "!text-foreground" }}
             >
               {n.label}
             </Link>
@@ -97,31 +106,34 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-border">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-12 md:flex-row md:items-end md:justify-between md:px-10">
+    <footer className="mt-24 bg-ink text-[#fbfbf8]">
+      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1fr_auto] md:items-end md:px-10">
         <div>
-          <div className="font-display text-3xl">
-            Trip<span className="italic text-ochre">My</span>Way
-          </div>
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Your place. Your story. Your map.
-          </p>
-        </div>
-        <div className="flex gap-8 text-sm text-muted-foreground">
-          <Link to="/create" className="hover:text-foreground">
-            Create
+          <Link to="/" className="text-3xl" aria-label="TripMyWay home">
+            <Logo inverse />
           </Link>
-          <Link to="/styles" className="hover:text-foreground">
+          <p className="mt-3 max-w-sm text-[#fbfbf8]/70">Every stop of your trip, on one print.</p>
+        </div>
+        <nav aria-label="Footer" className="flex flex-wrap gap-x-8 gap-y-3 text-sm font-medium">
+          <Link to="/create" className="text-[#fbfbf8]/75 hover:text-[#fbfbf8]">
+            Create a trip map
+          </Link>
+          <Link to="/journey" className="text-[#fbfbf8]/75 hover:text-[#fbfbf8]">
+            Map Your Journey
+          </Link>
+          <Link to="/styles" className="text-[#fbfbf8]/75 hover:text-[#fbfbf8]">
             Styles
           </Link>
-          <Link to="/about" className="hover:text-foreground">
+          <Link to="/about" className="text-[#fbfbf8]/75 hover:text-[#fbfbf8]">
             About
           </Link>
-          <Link to="/faq" className="hover:text-foreground">
+          <Link to="/faq" className="text-[#fbfbf8]/75 hover:text-[#fbfbf8]">
             FAQ
           </Link>
-        </div>
-        <p className="text-xs text-muted-foreground">Map data © OpenStreetMap contributors</p>
+        </nav>
+        <p className="text-xs text-[#fbfbf8]/55 md:col-span-2">
+          Maps drawn from OpenStreetMap data © OpenStreetMap contributors.
+        </p>
       </div>
     </footer>
   );

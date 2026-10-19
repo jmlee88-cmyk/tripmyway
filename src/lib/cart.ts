@@ -84,6 +84,13 @@ export function addToCart(design: Customization | Customization[]): CartItem {
   return item;
 }
 
+/** Add a ready-made item (trip prints are built in src/lib/trip-cart.ts). */
+export function addCartItem(item: CartItem): CartItem {
+  load();
+  commit([...items, item]);
+  return item;
+}
+
 /** The panels of a cart item: one for a single print, several for a set. */
 export function itemPanels(item: CartItem): Customization[] {
   return item.panels?.length ? item.panels : [item.customization];

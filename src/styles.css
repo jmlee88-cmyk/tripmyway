@@ -5,13 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * TripMyWay design system — warm editorial neutrals.
- * All colors use oklch. Artwork palettes live in src/config/map-styles.ts.
+ * TripMyWay design system: bright map paper, travel-document navy, sea, land
+ * and a marigold pin (the T-pin in the logo). Artwork palettes for the prints
+ * live in src/config/map-styles.ts; these colours are for the site only.
  */
 
 @theme inline {
-  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
-  --font-sans: "Jost", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 1px);
   --radius-md: var(--radius);
   --radius-lg: var(--radius);
@@ -38,36 +39,45 @@
   --color-paper: var(--paper);
   --color-stage: var(--stage);
   --color-ochre: var(--ochre);
+  --color-pin: var(--pin);
+  --color-sea: var(--sea);
+  --color-land: var(--land);
+  --color-ink: var(--ink);
   --shadow-print: var(--print-shadow);
   --shadow-print-lg: var(--print-shadow-lg);
 }
 
 :root {
-  --radius: 2px;
-  --background: oklch(0.975 0.008 80);
-  --foreground: oklch(0.22 0.01 60);
-  --card: oklch(0.99 0.005 80);
-  --card-foreground: oklch(0.22 0.01 60);
-  --popover: oklch(0.99 0.005 80);
-  --popover-foreground: oklch(0.22 0.01 60);
-  --primary: oklch(0.22 0.01 60);
-  --primary-foreground: oklch(0.975 0.008 80);
-  --secondary: oklch(0.94 0.012 78);
-  --secondary-foreground: oklch(0.22 0.01 60);
-  --muted: oklch(0.94 0.012 78);
-  --muted-foreground: oklch(0.5 0.015 65);
-  --accent: oklch(0.92 0.018 75);
-  --accent-foreground: oklch(0.22 0.01 60);
-  --destructive: oklch(0.52 0.16 30);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.88 0.012 75);
-  --input: oklch(0.86 0.014 75);
-  --ring: oklch(0.55 0.06 65);
-  --paper: oklch(0.99 0.004 85);
-  --stage: oklch(0.935 0.014 78);
-  --ochre: oklch(0.62 0.09 65);
-  --print-shadow: 0 1px 2px oklch(0.2 0.01 60 / 0.08), 0 18px 40px -18px oklch(0.2 0.01 60 / 0.35);
-  --print-shadow-lg: 0 2px 4px oklch(0.2 0.01 60 / 0.1), 0 40px 80px -30px oklch(0.2 0.01 60 / 0.45);
+  --radius: 10px;
+  --ink: #1b2a41;
+  --pin: #f2b134;
+  --sea: #d7e8ea;
+  --land: #efe8d6;
+  --background: #fbfbf8;
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: #fbfbf8;
+  --secondary: #eef3f2;
+  --secondary-foreground: var(--ink);
+  --muted: #eef3f2;
+  --muted-foreground: #556173;
+  --accent: #e4eeee;
+  --accent-foreground: var(--ink);
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: #dbe1e3;
+  --input: #cfd7da;
+  --ring: #1b2a41;
+  --paper: #ffffff;
+  --stage: #e7f0f0;
+  /* Amber dark enough for text on paper (the bright pin colour is for shapes). */
+  --ochre: #9a6206;
+  --print-shadow: 0 1px 2px rgb(27 42 65 / 0.08), 0 18px 40px -18px rgb(27 42 65 / 0.35);
+  --print-shadow-lg: 0 2px 4px rgb(27 42 65 / 0.1), 0 40px 80px -30px rgb(27 42 65 / 0.45);
 }
 
 @layer base {
@@ -85,16 +95,21 @@
   }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    font-variation-settings: "opsz" 96;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
   }
 }
 
+/* Small section label: plain sentence case, quiet weight. */
 @utility eyebrow {
   font-family: var(--font-sans);
-  font-size: 0.72rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--color-muted-foreground);
 }
 
@@ -109,3 +124,16 @@
 
 .maplibregl-ctrl-attrib { font-size: 8px !important; opacity: 0.55; }
 .maplibregl-ctrl-logo { display: none !important; }
+
+/* Home hero: the route draws itself once, then the pins drop in. */
+@keyframes route-draw {
+  from { stroke-dashoffset: var(--route-len, 1200); }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes pin-drop {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-anim, .pin-anim { animation: none !important; stroke-dashoffset: 0 !important; opacity: 1 !important; }
+}

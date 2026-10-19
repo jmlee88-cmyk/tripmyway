@@ -104,8 +104,16 @@ export function TripPhotoField({
           </button>
         )}
         <label
-          className={`underline underline-offset-4 ${busy ? "cursor-wait opacity-60" : "cursor-pointer"}`}
+          className={`inline-flex items-center gap-2 font-medium underline underline-offset-4 ${busy ? "cursor-wait opacity-60" : "cursor-pointer"}`}
         >
+          {!photo && (
+            <span
+              aria-hidden
+              className="grid h-11 w-11 place-items-center rounded-full border-2 border-dashed border-foreground/30 text-lg text-muted-foreground no-underline"
+            >
+              +
+            </span>
+          )}
           {busy ? "Preparing photo…" : photo ? "Change photo" : "Add a photo"}
           <input
             ref={input}

@@ -2,6 +2,7 @@ import type { CartItem, Customization } from "@/types/product";
 import { SHOPIFY } from "@/config/shopify";
 import { PRINT_FORMATS, getFinish, getFrame } from "@/config/products";
 import { itemLineItemProperties, itemPanels, removeItems } from "./cart";
+import { tripCheckoutLine } from "./trip-cart";
 
 /**
  * SHOPIFY CHECKOUT: turns the site's cart into a Shopify cart (Storefront API
@@ -51,6 +52,7 @@ function compact(c: Customization) {
 }
 
 export function toCheckoutLine(item: CartItem): CheckoutLine {
+  if (item.trip) return tripCheckoutLine(item);
   const panels = itemPanels(item);
   const format =
     PRINT_FORMATS.find((f) => f.panels === panels.length)?.id ??

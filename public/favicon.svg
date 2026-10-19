@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#1B2A41"/>
+  <!-- folded map, three panels -->
+  <path d="M7 25 L22 20 L22 56 L7 60 Z" fill="#EFE8D6"/>
+  <path d="M22 20 L42 26 L42 62 L22 56 Z" fill="#D9CBA6"/>
+  <path d="M42 26 L57 21 L57 57 L42 62 Z" fill="#EFE8D6"/>
+  <!-- sea on the map -->
+  <path d="M42 44 C47 41 52 43 57 40 L57 57 L42 62 Z" fill="#9CC4CA"/>
+  <!-- route -->
+  <path d="M11 53 C17 49 20 42 27 44 S33 47 36 43" fill="none" stroke="#1B2A41" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.1 5.2"/>
+  <!-- T-shaped pin -->
+  <path d="M19 10.5 A4.5 4.5 0 0 1 23.5 6 H48.5 A4.5 4.5 0 0 1 53 10.5 V13 A4.5 4.5 0 0 1 48.5 17.5 H42 L36 44 L30 17.5 H23.5 A4.5 4.5 0 0 1 19 13 Z" fill="#F2B134" stroke="#1B2A41" stroke-width="2.4" stroke-linejoin="round"/>
+</svg>

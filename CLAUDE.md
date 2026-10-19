@@ -44,7 +44,28 @@ Cloudflare Worker (`wrangler.jsonc`), R2 for preview images.
 
 ## 2. New for TripMyWay
 
-- **Frontend & brand:** new home page, header, about/FAQ, colours and type.
+- **Frontend & brand (built Oct 18 2026):** TripMyWay look, distinct from Atlas & Ink: map paper
+  `#fbfbf8`, navy ink `#1b2a41`, sea `#d7e8ea`, land `#efe8d6`, marigold pin `#f2b134` (tokens in
+  `styles.css`; `ochre` is now a dark amber for text). Type: Bricolage Grotesque (headings) + Figtree
+  (body); poster fonts (Cormorant, Jost, Playfair, Plex) still load for the print styles. Buttons are
+  pills; eyebrows are sentence case. Logo/favicon: a T-shaped pin on a folded map
+  (`public/favicon.svg`, `favicon.ico` with a simpler 16 px frame, `public/brand/*.png`;
+  `components/site/Logo.tsx` draws the same pin). Home (`routes/index.tsx`): hero with a sample Italy
+  trip print drawn from Natural Earth coastlines (`components/home/home-maps.ts`, generated; photos are
+  illustrated stand-ins in `Vignette.tsx`), two ways to start, four steps, the split-trip example
+  (California → Japan), sizes/finishes from config. About and FAQ rewritten for trips.
+- **Create = trip builder (built Oct 18 2026):** `/create` no longer hosts the Atlas single-place
+  editor (it's in git history before this change). It uses `components/trip/TripEditor.tsx`, shared
+  with /journey: stops in order (search to add, rename, date, reorder, remove, "Wrong place?"), photo
+  per stop, live trip print, fit/split advice, size (blocked when a photo is too small), finish, frame,
+  price and Add to cart. The draft is kept in localStorage (`tripmyway-trip-draft-v1`); `?style=` sets
+  the map style.
+- **Trip prints in the cart (built Oct 18 2026):** `src/lib/trip-cart.ts`, alongside the single-print
+  cart. `CartItem.trip` + `tripPrints`; `customization` holds a stand-in from the first stop. The
+  Shopify product follows the deterministic plan (1 → single, 2 → diptych, 3 → triptych), priced per
+  print. Line properties: Trip, Stops, Photos, Format, Style, Size, Finish, Frame; `_design` is
+  `{v: 2, trip}` with photo URLs/keys and crops (no image data). No `_preview` image for trips yet.
+  Fulfilment: `/studio/trip` (noindex) turns a pasted `_design` into the print PDF with bleed.
 - **Map Your Journey** (decided and built Oct 18 2026) replaces "Your Story" in the menu:
   `/journey` (`routes/journey.tsx`; `/story` redirects there). The customer pastes an
   itinerary or writes a few sentences; one Claude call (`server/journey-ai.ts`, settings

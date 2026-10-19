@@ -1,128 +1,237 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { PosterPreview } from "@/components/poster/PosterPreview";
-import { DemoMapArt } from "@/components/map/DemoMapArt";
-import { MAP_STYLES } from "@/config/map-styles";
-import { DEFAULT_CUSTOMIZATION, DEMO_LOCATIONS, formatCoordinates } from "@/config/products";
-import type { Customization } from "@/types/product";
-import hero from "@/assets/hero-interior.jpg";
+import { PRINT_FINISHES, PRINT_SIZES, formatPrice } from "@/config/products";
+import { TRIP } from "@/config/trip";
+import { TPin } from "@/components/site/Logo";
+import { TripPosterArt } from "@/components/home/TripPosterArt";
+import { SplitTripArt } from "@/components/home/SplitTripArt";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Personalized Map Art | Turn Places Into Art" },
-      { name: "description", content: "Create personalized map artwork from the places that matter most. Choose your location, style and story, then turn it into beautiful wall art." },
-      { property: "og:title", content: "Personalized Map Art | Turn Places Into Art" },
-      { property: "og:description", content: "Create personalized map artwork from the places that matter most. Choose your location, style and story, then turn it into beautiful wall art." },
+      { title: "TripMyWay | Your whole trip on one map print, with your photos" },
+      {
+        name: "description",
+        content:
+          "Turn a trip into wall art: add the places you went, in order, and we map the route on a real map with your photo beside every stop.",
+      },
+      { property: "og:title", content: "TripMyWay | Your whole trip on one print" },
+      {
+        property: "og:description",
+        content: "Add the places you went. We map the route and put your photo beside every stop.",
+      },
     ],
   }),
   component: Home,
 });
 
-const ex = (i: number, styleId: string, title: string, sub: string, date: string): Customization => {
-  const l = DEMO_LOCATIONS[i]!;
-  return { ...DEFAULT_CUSTOMIZATION, location: l, styleId, title, subtitle: sub, date, coordinates: formatCoordinates(l.latitude, l.longitude), printSize: "12x18", markerStyle: "dot" };
-};
-const EXAMPLES = [
-  { label: "Our First Home", c: ex(5, "modern-minimal", "OUR FIRST HOME", "SEATTLE, WASHINGTON", "2019") },
-  { label: "Where We Met", c: ex(3, "midnight", "WHERE WE MET", "PARIS, FRANCE", "14.06.2015") },
-  { label: "A Place to Remember", c: ex(4, "vintage", "A PLACE TO REMEMBER", "TOKYO, JAPAN", "2022") },
-];
-const USES = ["New Home", "Wedding", "Anniversary", "Birth", "Travel", "Memorial"];
+const FROM = Math.min(...PRINT_SIZES.map((s) => formatPrice(s.id, 1)));
+
+const STEPS = [
+  ["Add your stops", "Search each place you went and put them in order. Up to seven."],
+  [
+    "Add a photo to each",
+    "Pick the shot that says the most about each stop and choose what shows in the circle.",
+  ],
+  [
+    "Choose size and finish",
+    "From 8 × 10 to 32 × 48, on paper, canvas, metal or acrylic. Framed if you like.",
+  ],
+  [
+    "We print it",
+    "Your map is drawn from real map data and printed at full resolution, ready for the wall.",
+  ],
+] as const;
 
 function Home() {
   return (
     <>
-      <section className="mx-auto grid max-w-7xl items-center gap-10 px-5 pt-10 md:px-10 md:pt-16 lg:grid-cols-[5fr_7fr] lg:gap-16">
-        <div className="fade-in">
-          <p className="eyebrow">Personalized map art</p>
-          <h1 className="mt-5 text-5xl leading-[1.02] md:text-7xl">Turn the places that matter into art.</h1>
-          <p className="mt-6 max-w-md text-lg leading-relaxed text-muted-foreground">
-            Create a beautifully designed map of the place you call home, the place you met, or anywhere your story began.
+      {/* The hero opens with the product: a real trip, mapped. */}
+      <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 pt-10 md:px-10 md:pt-14 lg:grid-cols-[1fr_minmax(0,540px)] lg:gap-16">
+        <div>
+          <h1 className="text-[2.9rem] leading-[0.98] sm:text-6xl lg:text-[4.6rem]">
+            Every stop of your trip, on one print.
+          </h1>
+          <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground md:text-xl">
+            Add the places you went, in the order you went. We draw the route on a real map and put
+            your photo beside each stop.
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
-            <Button asChild variant="editorial" size="xl"><Link to="/create">Create Your Map</Link></Button>
-            <Button asChild variant="editorial-outline" size="xl"><Link to="/styles">Explore Styles</Link></Button>
+            <Button asChild variant="editorial" size="xl">
+              <Link to="/create">Start your trip map</Link>
+            </Button>
+            <Button asChild variant="editorial-outline" size="xl">
+              <Link to="/journey">Paste your itinerary</Link>
+            </Button>
           </div>
-          <p className="mt-6 text-sm text-muted-foreground">
-            Mapping a whole trip?{" "}
-            <Link to="/journey" className="text-foreground underline underline-offset-4">Map your journey</Link>{" "}
-            from your itinerary, every stop in order.
-          </p>
+          <ul className="mt-9 flex flex-wrap gap-x-7 gap-y-3 text-sm font-medium">
+            {[`Up to ${TRIP.maxStops} stops`, "A photo at every stop", `Prints from $${FROM}`].map(
+              (t) => (
+                <li key={t} className="flex items-center gap-2">
+                  <TPin className="h-4 w-auto" />
+                  {t}
+                </li>
+              ),
+            )}
+          </ul>
         </div>
-        <img src={hero} alt="Three framed map prints in a warm living room" width={1600} height={1104} className="w-full" />
+        <div className="rounded-[28px] bg-stage p-6 sm:p-10">
+          <TripPosterArt className="mx-auto w-full max-w-[460px] shadow-print-lg" />
+        </div>
       </section>
 
-      <Section eyebrow="Examples" title="Made from places that mean something.">
-        <div className="grid gap-10 md:grid-cols-3">
-          {EXAMPLES.map((e) => (
-            <figure key={e.label}>
-              <div className="bg-stage p-8"><PosterPreview customization={e.c} className="w-full shadow-print" /></div>
-              <figcaption className="mt-4 font-display text-2xl">{e.label}</figcaption>
-            </figure>
-          ))}
+      {/* Two ways in, matching how people plan. */}
+      <section className="mx-auto mt-28 max-w-7xl px-5 md:px-10">
+        <h2 className="max-w-2xl text-4xl md:text-5xl">Start the way you plan.</h2>
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
+          <Link
+            to="/create"
+            className="group flex flex-col rounded-[22px] border-2 border-border bg-card p-7 transition-colors hover:border-foreground md:p-9"
+          >
+            <ol className="flex flex-col gap-2.5" aria-hidden>
+              {["Lisbon", "Sintra", "Porto", "Douro Valley"].map((s, i) => (
+                <li key={s} className="flex items-center gap-3 rounded-xl bg-muted px-4 py-3">
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">
+                    {i + 1}
+                  </span>
+                  <span className="font-medium">{s}</span>
+                </li>
+              ))}
+              <li className="flex items-center gap-3 rounded-xl border-2 border-dashed border-border px-4 py-3 text-muted-foreground">
+                <span className="grid h-7 w-7 place-items-center rounded-full border-2 border-dashed border-border text-sm">
+                  +
+                </span>
+                Add a stop
+              </li>
+            </ol>
+            <h3 className="mt-8 text-3xl">Build it stop by stop</h3>
+            <p className="mt-2 max-w-md text-muted-foreground">
+              Search for each place, put them in order and add your photos as you go.
+            </p>
+            <span className="mt-6 font-semibold underline decoration-pin decoration-[3px] underline-offset-[6px]">
+              Start your trip map
+            </span>
+          </Link>
+          <Link
+            to="/journey"
+            className="group flex flex-col rounded-[22px] bg-ink p-7 text-[#fbfbf8] md:p-9"
+          >
+            <pre
+              aria-hidden
+              className="whitespace-pre-wrap rounded-xl bg-white/8 px-5 py-4 font-sans text-[0.95rem] leading-7 text-[#fbfbf8]/85"
+            >
+              {
+                "June 3: fly into Lisbon\nJune 6: day trip to Sintra\nJune 8: train to Porto\nJune 11: Douro Valley wine tour"
+              }
+            </pre>
+            <h3 className="mt-8 text-3xl">Paste your itinerary</h3>
+            <p className="mt-2 max-w-md text-[#fbfbf8]/75">
+              Drop in your plans, a list of places or a few sentences about the trip. We find every
+              stop and ask if anything is unclear.
+            </p>
+            <span className="mt-6 font-semibold underline decoration-pin decoration-[3px] underline-offset-[6px]">
+              Map Your Journey
+            </span>
+          </Link>
         </div>
-      </Section>
+      </section>
 
-      <Section eyebrow="Five styles" title="Choose your style.">
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-5">
-          {MAP_STYLES.map((s, i) => (
-            <Link key={s.id} to="/styles/$styleId" params={{ styleId: s.id }} className="group">
-              <div className="aspect-[4/5] overflow-hidden border border-border transition-colors group-hover:border-foreground">
-                <DemoMapArt config={s.configuration} seed={i + 3} className="h-full w-full transition-transform duration-700 group-hover:scale-[1.03]" />
-              </div>
-              <p className="mt-3 font-display text-sm italic text-ochre">{s.number}</p>
-              <p className="text-lg">{s.name}</p>
-              <p className="text-sm text-muted-foreground">{s.description}</p>
-            </Link>
-          ))}
-        </div>
-      </Section>
-
-      <Section eyebrow="Occasions" title="Designed for the moments that matter.">
-        <ul className="grid grid-cols-2 border-l border-t border-border md:grid-cols-3">
-          {USES.map((u) => (
-            <li key={u} className="border-b border-r border-border px-6 py-10 font-display text-3xl md:text-4xl">{u}</li>
-          ))}
-        </ul>
-      </Section>
-
-      <Section eyebrow="How it works" title="From location to wall art.">
-        <ol className="grid gap-10 md:grid-cols-3">
-          {[
-            ["Choose a place", "Search any address, neighborhood or landmark in the world."],
-            ["Make it yours", "Pick a style, add your words, frame the area and choose a size."],
-            ["We turn it into art", "Your design is prepared as a high-resolution file for printing."],
-          ].map(([t, d], i) => (
-            <li key={t} className="border-t border-foreground pt-6">
-              <span className="font-display text-5xl italic text-ochre">{i + 1}</span>
-              <h3 className="mt-3 text-3xl">{t}</h3>
+      {/* A real sequence, drawn as a route with stops. */}
+      <section className="mx-auto mt-28 max-w-7xl px-5 md:px-10">
+        <h2 className="max-w-2xl text-4xl md:text-5xl">From trip to wall in four stops.</h2>
+        <ol className="relative mt-12 grid gap-10 md:grid-cols-4 md:gap-8">
+          <span
+            aria-hidden
+            className="absolute left-[18px] top-4 bottom-4 border-l-2 border-dashed border-foreground/30 md:left-4 md:right-[24%] md:top-[18px] md:bottom-auto md:border-l-0 md:border-t-2"
+          />
+          {STEPS.map(([t, d], i) => (
+            <li key={t} className="relative pl-14 md:pl-0">
+              <span className="absolute left-0 top-0 grid h-9 w-9 place-items-center rounded-full bg-pin font-display text-lg font-bold text-ink ring-4 ring-background md:relative">
+                {i + 1}
+              </span>
+              <h3 className="text-2xl md:mt-5">{t}</h3>
               <p className="mt-2 text-muted-foreground">{d}</p>
             </li>
           ))}
         </ol>
-      </Section>
+      </section>
+
+      {/* What makes trip prints different: the split. */}
+      <section className="mx-auto mt-28 max-w-7xl px-5 md:px-10">
+        <div className="grid items-center gap-12 rounded-[28px] bg-stage px-6 py-12 md:px-12 lg:grid-cols-[minmax(0,380px)_1fr] lg:py-16">
+          <div>
+            <h2 className="text-4xl md:text-5xl">Too far for one map? It becomes a set.</h2>
+            <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
+              When a trip crosses an ocean or a continent, one map would be mostly empty. We split
+              it into two or three prints that follow your route in order, mark the distance in
+              between, and add a small map of the whole trip.
+            </p>
+            <p className="mt-4 text-muted-foreground">
+              You'll see whether your trip fits on one print, and from which size, before you order.
+            </p>
+          </div>
+          <SplitTripArt />
+        </div>
+      </section>
+
+      <section className="mx-auto mt-28 max-w-5xl px-5 text-center md:px-10">
+        <p className="font-display text-3xl font-semibold leading-snug tracking-[-0.02em] md:text-[2.6rem] md:leading-[1.2]">
+          Honeymoons. Road trips. The gap year, the semester abroad, the family trip everyone still
+          talks about.
+        </p>
+      </section>
+
+      {/* Print details, read straight from the price list. */}
+      <section className="mx-auto mt-28 max-w-7xl px-5 md:px-10">
+        <h2 className="max-w-2xl text-4xl md:text-5xl">Made to hang, made to last.</h2>
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_1fr]">
+          <div>
+            <h3 className="text-xl">Sizes, on fine art paper</h3>
+            <ul className="mt-4 divide-y divide-border border-y border-border">
+              {PRINT_SIZES.map((s) => (
+                <li key={s.id} className="flex items-baseline justify-between py-3.5">
+                  <span className="font-medium">{s.label} in</span>
+                  <span className="text-muted-foreground">${formatPrice(s.id, 1)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-sm text-muted-foreground">
+              A set of two or three prints is priced per print.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-xl">Finishes</h3>
+            <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+              {PRINT_FINISHES.map((f) => (
+                <li key={f.id} className="rounded-2xl bg-muted p-5">
+                  <p className="font-semibold">{f.label}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    {f.description}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Every photo is checked against your print size. If one is too small to print sharply,
+              you'll know before you order.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section className="mx-auto mt-28 max-w-7xl px-5 md:px-10">
-        <div className="bg-stage px-8 py-20 text-center md:py-28">
-          <p className="eyebrow">Quality</p>
-          <h2 className="mt-4 text-5xl md:text-6xl">Printed with care.</h2>
-          <p className="mx-auto mt-6 max-w-xl text-muted-foreground">
-            Every map is drawn from real geographic data and prepared as print-ready artwork for high-quality wall-art printing — crisp lines, considered type, and balanced composition.
-          </p>
-          <Button asChild variant="editorial" size="xl" className="mt-10"><Link to="/create">Create Your Map</Link></Button>
+        <div className="flex flex-col items-start gap-6 rounded-[28px] bg-pin px-8 py-14 md:flex-row md:items-center md:justify-between md:px-14">
+          <h2 className="text-4xl text-ink md:text-5xl">Where did you go?</h2>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild variant="editorial" size="xl">
+              <Link to="/create">Start your trip map</Link>
+            </Button>
+            <Button asChild variant="editorial-outline" size="xl" className="border-ink/30">
+              <Link to="/journey">Paste your itinerary</Link>
+            </Button>
+          </div>
         </div>
       </section>
     </>
-  );
-}
-
-function Section({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
-  return (
-    <section className="mx-auto mt-28 max-w-7xl px-5 md:px-10">
-      <p className="eyebrow">{eyebrow}</p>
-      <h2 className="mb-12 mt-3 max-w-2xl text-4xl md:text-5xl">{title}</h2>
-      {children}
-    </section>
   );
 }

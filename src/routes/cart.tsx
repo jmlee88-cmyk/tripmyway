@@ -5,6 +5,9 @@ import { cartSubtotal, itemPanels, removeFromCart, updateQuantity, useCart } fro
 import { getMapStyle } from "@/config/map-styles";
 import { frameLabel, getFinish, getFrame, getPrintSize } from "@/config/products";
 import { PosterPreview } from "@/components/poster/PosterPreview";
+import { PhotoCircle } from "@/components/trip/TripPhotoField";
+import { printOptions } from "@/lib/trip-cart";
+import type { CartItem } from "@/types/product";
 import { Button } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
 
@@ -12,9 +15,9 @@ export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
       { title: "Your Cart | TripMyWay" },
-      { name: "description", content: "Review your personalized map prints." },
+      { name: "description", content: "Review your trip map prints." },
       { property: "og:title", content: "Your Cart | TripMyWay" },
-      { property: "og:description", content: "Review your personalized map prints." },
+      { property: "og:description", content: "Review your trip map prints." },
     ],
   }),
   component: CartPage,
@@ -33,19 +36,30 @@ function CartPage() {
       {items.length === 0 ? (
         <div className="mt-12 border-t border-border pt-12">
           <p className="text-muted-foreground">Your cart is empty.</p>
-          <Button asChild variant="editorial" size="lg" className="mt-6"><Link to="/create">Create Your Map</Link></Button>
+          <Button asChild variant="editorial" size="lg" className="mt-6">
+            <Link to="/create">Start your trip map</Link>
+          </Button>
         </div>
       ) : (
         <>
           <ul className="mt-10 divide-y divide-border border-y border-border">
             {items.map((it) => {
+              if (it.trip) return <TripRow key={it.id} item={it} />;
               const c = it.customization;
               const panels = itemPanels(it);
               const isSet = panels.length > 1;
               return (
-                <li key={it.id} className={`grid gap-6 py-8 ${isSet ? "grid-cols-[150px_1fr] sm:grid-cols-[240px_1fr_auto]" : "grid-cols-[96px_1fr] sm:grid-cols-[140px_1fr_auto]"}`}>
-                  <div className="grid gap-1.5 self-start bg-stage p-3" style={{ gridTemplateColumns: `repeat(${panels.length}, minmax(0, 1fr))` }}>
-                    {panels.map((p, i) => <PosterPreview key={i} customization={p} className="w-full shadow-print" />)}
+                <li
+                  key={it.id}
+                  className={`grid gap-6 py-8 ${isSet ? "grid-cols-[150px_1fr] sm:grid-cols-[240px_1fr_auto]" : "grid-cols-[96px_1fr] sm:grid-cols-[140px_1fr_auto]"}`}
+                >
+                  <div
+                    className="grid gap-1.5 self-start bg-stage p-3"
+                    style={{ gridTemplateColumns: `repeat(${panels.length}, minmax(0, 1fr))` }}
+                  >
+                    {panels.map((p, i) => (
+                      <PosterPreview key={i} customization={p} className="w-full shadow-print" />
+                    ))}
                   </div>
                   <div className="min-w-0">
                     {isSet ? (
@@ -60,33 +74,74 @@ function CartPage() {
                       </>
                     )}
                     <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      <dt>Style</dt><dd>{getMapStyle(c.styleId).name}</dd>
-                      <dt>Size</dt><dd>{getPrintSize(c.printSize).label} in{isSet ? " each" : ""} · {getFinish(c.finish).label}</dd>
-                      {getFrame(c) !== "none" && (<><dt>Frame</dt><dd>{frameLabel(c)}{isSet ? " (each panel)" : ""}</dd></>)}
-                      <dt>Layout</dt><dd>{c.layout === "fullBleed" ? "Edge to edge" : "With margin"}</dd>
+                      <dt>Style</dt>
+                      <dd>{getMapStyle(c.styleId).name}</dd>
+                      <dt>Size</dt>
+                      <dd>
+                        {getPrintSize(c.printSize).label} in{isSet ? " each" : ""} ·{" "}
+                        {getFinish(c.finish).label}
+                      </dd>
+                      {getFrame(c) !== "none" && (
+                        <>
+                          <dt>Frame</dt>
+                          <dd>
+                            {frameLabel(c)}
+                            {isSet ? " (each panel)" : ""}
+                          </dd>
+                        </>
+                      )}
+                      <dt>Layout</dt>
+                      <dd>{c.layout === "fullBleed" ? "Edge to edge" : "With margin"}</dd>
                       {panels.map((p, i) => (
                         <div key={i} className="contents">
-                          <dt>{isSet ? `Panel ${i + 1}` : "Place"}</dt><dd className="truncate">{p.location?.formattedAddress}</dd>
+                          <dt>{isSet ? `Panel ${i + 1}` : "Place"}</dt>
+                          <dd className="truncate">{p.location?.formattedAddress}</dd>
                         </div>
                       ))}
                     </dl>
                     <div className="mt-4 flex items-center gap-4">
-                      <div className="inline-flex items-center border border-border" aria-label="Quantity">
-                        <button className="h-9 w-9" onClick={() => updateQuantity(it.id, it.quantity - 1)} aria-label="Decrease quantity">−</button>
+                      <div
+                        className="inline-flex items-center border border-border"
+                        aria-label="Quantity"
+                      >
+                        <button
+                          className="h-9 w-9"
+                          onClick={() => updateQuantity(it.id, it.quantity - 1)}
+                          aria-label="Decrease quantity"
+                        >
+                          −
+                        </button>
                         <span className="w-8 text-center text-sm">{it.quantity}</span>
-                        <button className="h-9 w-9" onClick={() => updateQuantity(it.id, it.quantity + 1)} aria-label="Increase quantity">+</button>
+                        <button
+                          className="h-9 w-9"
+                          onClick={() => updateQuantity(it.id, it.quantity + 1)}
+                          aria-label="Increase quantity"
+                        >
+                          +
+                        </button>
                       </div>
-                      <button className="text-xs underline underline-offset-4 text-muted-foreground hover:text-foreground" onClick={() => removeFromCart(it.id)}>Remove</button>
+                      <button
+                        className="text-xs underline underline-offset-4 text-muted-foreground hover:text-foreground"
+                        onClick={() => removeFromCart(it.id)}
+                      >
+                        Remove
+                      </button>
                     </div>
                   </div>
-                  <p className="col-start-2 font-display text-2xl sm:col-start-auto">${it.price * it.quantity}</p>
+                  <p className="col-start-2 font-display text-2xl sm:col-start-auto">
+                    ${it.price * it.quantity}
+                  </p>
                 </li>
               );
             })}
           </ul>
           <div className="mt-8 flex flex-col items-end gap-4">
-            <p className="text-lg">Subtotal <span className="ml-4 font-display text-3xl">${cartSubtotal(items)}</span></p>
-            <p className="text-xs text-muted-foreground">Shipping and taxes calculated at checkout.</p>
+            <p className="text-lg">
+              Subtotal <span className="ml-4 font-display text-3xl">${cartSubtotal(items)}</span>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Shipping and taxes calculated at checkout.
+            </p>
             <Button
               variant="editorial"
               size="xl"
@@ -97,11 +152,12 @@ function CartPage() {
                 try {
                   // Finish any map previews (they go on the order), then hand the
                   // cart to Shopify and go to its secure checkout.
-                  const [{ createCheckout }, { ensurePreviews }, { getCartItems }] = await Promise.all([
-                    import("@/lib/checkout"),
-                    import("@/lib/preview"),
-                    import("@/lib/cart"),
-                  ]);
+                  const [{ createCheckout }, { ensurePreviews }, { getCartItems }] =
+                    await Promise.all([
+                      import("@/lib/checkout"),
+                      import("@/lib/preview"),
+                      import("@/lib/cart"),
+                    ]);
                   await ensurePreviews(items);
                   window.location.assign(await createCheckout(getCartItems()));
                 } catch (e) {
@@ -118,5 +174,92 @@ function CartPage() {
         </>
       )}
     </div>
+  );
+}
+
+/** A trip print in the cart: its stops in order, with their photos. */
+function TripRow({ item }: { item: CartItem }) {
+  const t = item.trip!;
+  const prints = item.tripPrints ?? 1;
+  const opts = printOptions(t);
+  return (
+    <li className="grid grid-cols-[96px_1fr] gap-6 py-8 sm:grid-cols-[160px_1fr_auto]">
+      <div className="self-start rounded-2xl bg-stage p-3">
+        <div className="flex flex-wrap gap-1.5">
+          {t.stops.map((s, i) =>
+            s.photo ? (
+              <PhotoCircle key={s.id} photo={s.photo} size={40} className="ring-2 ring-white" />
+            ) : (
+              <span
+                key={s.id}
+                className="grid h-10 w-10 place-items-center rounded-full bg-ink text-xs font-bold text-white"
+              >
+                {i + 1}
+              </span>
+            ),
+          )}
+        </div>
+      </div>
+      <div className="min-w-0">
+        <p className="eyebrow">{prints > 1 ? `Trip print, set of ${prints}` : "Trip print"}</p>
+        <h2 className="text-2xl">{t.title}</h2>
+        <ol className="mt-2 flex flex-wrap gap-x-2 text-sm text-muted-foreground">
+          {t.stops.map((s, i) => (
+            <li key={s.id}>
+              {i + 1}. {s.label}
+              {i < t.stops.length - 1 ? "," : ""}
+            </li>
+          ))}
+        </ol>
+        <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <dt>Size</dt>
+          <dd>
+            {getPrintSize(t.printSize).label} in{prints > 1 ? " each" : ""},{" "}
+            {getFinish(opts.finish).label.toLowerCase()}
+          </dd>
+          {getFrame(opts) !== "none" && (
+            <>
+              <dt>Frame</dt>
+              <dd>{frameLabel(opts)}</dd>
+            </>
+          )}
+          <dt>Photos</dt>
+          <dd>
+            {t.stops.filter((s) => s.photo).length} of {t.stops.length} stops
+          </dd>
+        </dl>
+        <div className="mt-4 flex items-center gap-4">
+          <div
+            className="inline-flex items-center rounded-full border-2 border-border"
+            aria-label="Quantity"
+          >
+            <button
+              className="h-9 w-9"
+              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+              aria-label="Decrease quantity"
+            >
+              −
+            </button>
+            <span className="w-8 text-center text-sm">{item.quantity}</span>
+            <button
+              className="h-9 w-9"
+              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+              aria-label="Increase quantity"
+            >
+              +
+            </button>
+          </div>
+          <button
+            className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            onClick={() => removeFromCart(item.id)}
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+      <p className="col-start-2 font-display text-2xl font-bold sm:col-start-auto">
+        ${item.price * item.quantity}
+      </p>
+    </li>
   );
 }

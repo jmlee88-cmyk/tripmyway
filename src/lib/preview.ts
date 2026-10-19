@@ -121,7 +121,8 @@ export function ensurePreview(item: CartItem): Promise<string | null> {
 /** Previews for every item, giving up after `timeoutMs` so checkout is never stuck. */
 export async function ensurePreviews(items: CartItem[], timeoutMs = 20000): Promise<void> {
   await Promise.race([
-    Promise.all(items.map(ensurePreview)),
+    // Trip prints have no stored preview image yet; the order carries their full design.
+    Promise.all(items.filter((i) => !i.trip).map(ensurePreview)),
     new Promise((r) => setTimeout(r, timeoutMs)),
   ]);
 }

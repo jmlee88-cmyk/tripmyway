@@ -95,6 +95,13 @@ export interface CartItem {
   panels?: Customization[];
   /** Stored preview image of the design (set: all panels), once rendered. */
   previewUrl?: string;
+  /**
+   * A trip print (TripMyWay). `customization` then holds a stand-in built from
+   * the trip's first stop so older code paths keep working; the trip itself,
+   * and how many prints it needs at its size, are here (see src/lib/trip-cart.ts).
+   */
+  trip?: import("./trip").TripDesign;
+  tripPrints?: number;
   price: number;
   quantity: number;
   addedAt: number;
