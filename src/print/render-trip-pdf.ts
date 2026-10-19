@@ -372,6 +372,8 @@ export async function renderTripPdf(
         stroke(),
         popGraphicsState(),
       );
+      // A location map (one place) has nothing to count: a plain marker.
+      if (design.stops.length === 1) return;
       const n = String(panel.start + i + 1);
       const size = markerD * TRIP_LAYOUT.number.size;
       const asc = numberFont.metrics.ascent;
