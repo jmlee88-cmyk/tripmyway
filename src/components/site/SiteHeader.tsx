@@ -5,7 +5,7 @@ import { cartCount, useCart } from "@/lib/cart";
 import { Logo } from "./Logo";
 
 const NAV = [
-  { to: "/create", label: "Create a trip map" },
+  { to: "/create", label: "Create a Trip Map" },
   { to: "/journey", label: "Map Your Journey" },
   { to: "/styles", label: "Styles" },
   { to: "/faq", label: "FAQ" },
@@ -116,7 +116,7 @@ export function SiteFooter() {
         </div>
         <nav aria-label="Footer" className="flex flex-wrap gap-x-8 gap-y-3 text-sm font-medium">
           <Link to="/create" className="text-[#fbfbf8]/75 hover:text-[#fbfbf8]">
-            Create a trip map
+            Create a Trip Map
           </Link>
           <Link to="/journey" className="text-[#fbfbf8]/75 hover:text-[#fbfbf8]">
             Map Your Journey
