@@ -135,7 +135,13 @@ them **alongside** the existing code, without changing how single prints behave:
   `npx wrangler deploy`, preview builds on, own "tripmyway build token"); R2 bucket
   `tripmyway-previews`. Live at https://tripmyway.jerry-912.workers.dev (every push to
   `main` redeploys; other branches get preview links). Trip preview: `/trip/preview`.
-- Domain tripmyway.com pointed at Cloudflare (not yet).
+- **Domain (Oct 20 2026):** tripmyway.com transferred to Cloudflare (still showed GoDaddy's "for sale"
+  redirect on Oct 20: old parking DNS records to delete). To attach: Workers & Pages → `tripmyway` →
+  Settings → Domains & Routes → Add → Custom domain, `tripmyway.com` and `www.tripmyway.com` (done in the
+  dashboard, not `wrangler.jsonc`, so the build token needs no zone permissions). `src/config/site.ts` +
+  `src/server.ts`: www → tripmyway.com (301, path kept); the workers.dev address redirects page visits too
+  once `redirectWorkersDev` is set true (only after the domain loads); /api, /photos, /previews always
+  stay served on every host because past orders link to them; preview builds never redirect.
 - **Done (Oct 18 2026): Shopify store** `tripmyway-bf2kmucg.myshopify.com` (admin.shopify.com/store/tripmyway-bf2kmucg;
   Development plan, needs a paid plan + payments before real orders). Headless channel
   "Tripmyway Headless"; its public Storefront token is in `config/shopify.ts`.
