@@ -1,10 +1,11 @@
 /**
  * TripMyWay print file converter (runs in a Cloudflare Container).
  *
- * POST /render  { design, page, dpi, format, quality, mirrorWrapIn }
+ * POST /render  { design, page, dpi, format, quality, bleedIn, mirrorWrapIn }
  *   → draws the trip's print PDF with the site's own renderer (same code as
- *     the preview and the print studio), rasterises one page at `dpi` with
- *     pdftoppm, optionally adds a mirrored canvas wrap, and returns the JPEG
+ *     the preview and the print studio), with bleed if asked, rasterises one
+ *     page at `dpi` with pdftoppm, optionally adds a mirrored canvas wrap
+ *     (both 0 = the printed face only), and returns the JPEG
  *     or TIFF with its resolution set. Headers: x-width, x-height, x-pages.
  * GET /health   → "ok"
  *
@@ -33,6 +34,8 @@ export interface RenderRequest {
   dpi: number;
   format: "jpg" | "tif";
   quality?: number;
+  /** Bleed on every side, drawn by the renderer (0 = none). */
+  bleedIn?: number;
   /** Canvas: inches of mirrored edge to add on every side (0 = none). */
   mirrorWrapIn?: number;
 }
@@ -40,12 +43,14 @@ export interface RenderRequest {
 // The same trip is asked for once per print; keep its PDF for the next page.
 const pdfCache = new Map<string, Promise<{ bytes: Uint8Array; pages: number }>>();
 
-function tripPdf(design: TripDesign) {
-  const key = createHash("sha256").update(JSON.stringify(design)).digest("hex");
+function tripPdf(design: TripDesign, bleedIn: number) {
+  const key = createHash("sha256")
+    .update(JSON.stringify([design, bleedIn]))
+    .digest("hex");
   let job = pdfCache.get(key);
   if (!job) {
     job = renderTripPdf(design, {
-      bleedIn: 0,
+      bleedIn,
       placeholderPhotos: false,
       loadFont: async (file) => new Uint8Array(await readFile(join(FONTS, file))),
     }).then((r) => ({ bytes: r.bytes, pages: r.pages }));
@@ -60,16 +65,38 @@ function tripPdf(design: TripDesign) {
 const ppmm = (dpi: number) => (dpi / 25.4).toFixed(4);
 
 export async function renderPrintFile(req: RenderRequest, dir: string) {
-  const { bytes, pages } = await tripPdf(req.design);
-  if (req.page < 1 || req.page > pages) throw new Error(`The trip has ${pages} print(s), not ${req.page}.`);
+  const { bytes, pages } = await tripPdf(
+    req.design,
+    Math.min(0.5, Math.max(0, Number(req.bleedIn) || 0)),
+  );
+  if (req.page < 1 || req.page > pages)
+    throw new Error(`The trip has ${pages} print(s), not ${req.page}.`);
   const pdf = join(dir, "trip.pdf");
   await writeFile(pdf, bytes);
   // Rasterise to an LZW TIFF first (lossless), then encode once.
   const base = join(dir, "page");
-  await run("pdftoppm", [
-    "-r", String(req.dpi), "-f", String(req.page), "-l", String(req.page), "-singlefile",
-    "-tiff", "-tiffcompression", "lzw", "-aa", "yes", "-aaVector", "yes", pdf, base,
-  ], { maxBuffer: 1 << 20 });
+  await run(
+    "pdftoppm",
+    [
+      "-r",
+      String(req.dpi),
+      "-f",
+      String(req.page),
+      "-l",
+      String(req.page),
+      "-singlefile",
+      "-tiff",
+      "-tiffcompression",
+      "lzw",
+      "-aa",
+      "yes",
+      "-aaVector",
+      "yes",
+      pdf,
+      base,
+    ],
+    { maxBuffer: 1 << 20 },
+  );
   let src = `${base}.tif`;
   const out = join(dir, `print.${req.format}`);
   const target =
@@ -81,7 +108,17 @@ export async function renderPrintFile(req: RenderRequest, dir: string) {
     const w = Number(stdout.trim());
     const hh = Number(h.trim());
     const wrapped = join(dir, "wrapped.v");
-    await run("vips", ["embed", src, wrapped, String(wrapPx), String(wrapPx), String(w + 2 * wrapPx), String(hh + 2 * wrapPx), "--extend", "mirror"]);
+    await run("vips", [
+      "embed",
+      src,
+      wrapped,
+      String(wrapPx),
+      String(wrapPx),
+      String(w + 2 * wrapPx),
+      String(hh + 2 * wrapPx),
+      "--extend",
+      "mirror",
+    ]);
     src = wrapped;
   }
   await run("vips", ["copy", src, target, "--xres", ppmm(req.dpi), "--yres", ppmm(req.dpi)]);
@@ -122,7 +159,9 @@ const server = http.createServer(async (req, res) => {
     const t0 = Date.now();
     const file = await renderPrintFile({ ...body, dpi, format }, dir);
     const size = (await stat(file.path)).size;
-    console.log(`rendered page ${body.page}/${file.pages} ${file.width}x${file.height} ${size}B in ${Date.now() - t0}ms`);
+    console.log(
+      `rendered page ${body.page}/${file.pages} ${file.width}x${file.height} ${size}B in ${Date.now() - t0}ms`,
+    );
     res.writeHead(200, {
       "content-type": format === "jpg" ? "image/jpeg" : "image/tiff",
       "content-length": String(size),

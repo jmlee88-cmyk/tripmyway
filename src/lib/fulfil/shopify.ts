@@ -52,6 +52,8 @@ export interface OrderLine {
   sku: string;
   /** The `_design` line property (JSON), when the line is one of our prints. */
   design?: string;
+  /** The `_preview` line property: a small PNG of the design, for the orders page. */
+  preview?: string;
 }
 
 export interface ShopifyOrder {
@@ -60,6 +62,8 @@ export interface ShopifyOrder {
   name: string;
   test: boolean;
   createdAt: string;
+  /** Customer email, for the hand-placed ArtBeat order. */
+  email?: string;
   shipTo: Address | null;
   billTo: Address | null;
   lines: OrderLine[];
@@ -106,19 +110,23 @@ export function readShopifyOrder(payload: unknown): ShopifyOrder {
   const lines = (Array.isArray(o["line_items"]) ? (o["line_items"] as Raw[]) : []).map((li) => {
     const props = Array.isArray(li["properties"]) ? (li["properties"] as Raw[]) : [];
     const design = props.find((p) => str(p["name"]) === "_design");
+    const preview = str(props.find((p) => str(p["name"]) === "_preview")?.["value"]);
     return {
       lineItemId: str(li["id"]),
       title: str(li["title"]),
       quantity: Math.max(1, Number(li["quantity"]) || 1),
       sku: str(li["sku"]),
       ...(design ? { design: str(design["value"]) } : {}),
+      ...(/^https:\/\//.test(preview) ? { preview } : {}),
     };
   });
+  const email = str(o["email"]) || str(o["contact_email"]);
   return {
     id: str(o["id"]),
     name: str(o["name"]) || `#${str(o["order_number"])}`,
     test: o["test"] === true,
     createdAt: str(o["created_at"]),
+    ...(email ? { email } : {}),
     shipTo,
     billTo,
     lines,

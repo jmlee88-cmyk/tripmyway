@@ -1,7 +1,7 @@
 import type { FrameColor, PrintFinish } from "@/types/product";
 import type { TripDesign } from "@/types/trip";
-import { ARTBEAT, artbeatProductCode } from "@/config/artbeat";
-import { FRAME_STYLES, getFinish, getPrintSize } from "@/config/products";
+import { ARTBEAT, artbeatProductCode, type PrintEdge } from "@/config/artbeat";
+import { FRAME_STYLES, frameLabel, getFinish, getPrintSize } from "@/config/products";
 import { planTrip } from "@/lib/trip/plan";
 import { parseTripDesign } from "@/lib/trip/design";
 import type { Address, ShopifyOrder } from "./shopify";
@@ -24,11 +24,36 @@ export interface PrintJob {
   design: TripDesign;
   finish: PrintFinish;
   frame: FrameColor;
+  /** "" in manual mode when not set up yet. */
   productCode: string;
   /** Printed size in inches (portrait, as designed). */
   size: { width: number; height: number };
-  /** e.g. "1001-123456-2of3.jpg" */
+  /** What the file covers, and how much it adds on each side (inches). */
+  edge: PrintEdge;
+  bleedIn: number;
+  mirrorWrapIn: number;
+  /** For people: the Shopify line title, trip name, size, finish and frame. */
+  title: string;
+  tripName: string;
+  sizeLabel: string;
+  finishLabel: string;
+  frameLabel: string;
+  /** e.g. "1001-123456-2of3-front.jpg" */
   fileName: string;
+}
+
+export interface PlanOptions {
+  /** API mode needs an ArtBeat product code for every finish and frame; manual mode doesn't. */
+  requireProductCodes?: boolean;
+  edge?: PrintEdge;
+}
+
+/** Bleed and canvas wrap a file adds on each side, by edge choice and finish. */
+export function fileEdges(edge: PrintEdge, finish: PrintFinish) {
+  if (edge === "front") return { bleedIn: 0, mirrorWrapIn: 0 };
+  return finish === "canvas"
+    ? { bleedIn: 0, mirrorWrapIn: ARTBEAT.canvas.wrapIn }
+    : { bleedIn: ARTBEAT.bleedIn, mirrorWrapIn: 0 };
 }
 
 export interface PrintPlan {
@@ -37,7 +62,9 @@ export interface PrintPlan {
   problems: string[];
 }
 
-export function planPrints(order: ShopifyOrder): PrintPlan {
+export function planPrints(order: ShopifyOrder, opts: PlanOptions = {}): PrintPlan {
+  const requireCodes = opts.requireProductCodes ?? true;
+  const edge = opts.edge ?? ARTBEAT.edge;
   const prints: PrintJob[] = [];
   const problems: string[] = [];
   const ours = order.lines.filter((l) => l.design);
@@ -47,7 +74,7 @@ export function planPrints(order: ShopifyOrder): PrintPlan {
     if (typeof parsed === "string") {
       problems.push(
         /isn't a trip/.test(parsed)
-          ? `"${line.title}" is a single-place design: make it in the print studio and send it by hand.`
+          ? `"${line.title}" is a single-place design: make its file in the print studio (/studio/print on the site) and order it by hand.`
           : `"${line.title}": ${parsed}`,
       );
       continue;
@@ -58,7 +85,7 @@ export function planPrints(order: ShopifyOrder): PrintPlan {
         ? parsed.frame
         : "none";
     const productCode = artbeatProductCode(finish, frame);
-    if (!productCode) {
+    if (!productCode && requireCodes) {
       problems.push(
         `No ArtBeat product code for ${finish}${frame === "none" ? "" : ` with a ${frame} frame`} yet (src/config/artbeat.ts).`,
       );
@@ -71,6 +98,7 @@ export function planPrints(order: ShopifyOrder): PrintPlan {
     }));
     const parts = planTrip(points, size, parsed.styleId).panels.length;
     const ref = order.name.replace(/[^0-9A-Za-z]/g, "") || order.id;
+    const finishInfo = getFinish(finish);
     for (let part = 1; part <= parts; part++) {
       prints.push({
         lineItemId: line.lineItemId,
@@ -82,7 +110,14 @@ export function planPrints(order: ShopifyOrder): PrintPlan {
         frame,
         productCode,
         size: { width: size.widthIn, height: size.heightIn },
-        fileName: `${ref}-${line.lineItemId}-${part}of${parts}.${ARTBEAT.file.format}`,
+        edge,
+        ...fileEdges(edge, finish),
+        title: line.title,
+        tripName: parsed.title?.trim() || line.title,
+        sizeLabel: `${size.label}″`,
+        finishLabel: finishInfo.label,
+        frameLabel: frameLabel({ finish, frame }),
+        fileName: `${ref}-${line.lineItemId}-${part}of${parts}-${edge}.${ARTBEAT.file.format}`,
       });
     }
   }

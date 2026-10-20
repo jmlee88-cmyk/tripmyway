@@ -256,8 +256,8 @@ them **alongside** the existing code, without changing how single prints behave:
 
 - **ArtBeat fulfilment (built and deployed Oct 19 2026; waiting on secrets, webhook and product codes):** `fulfil/` is a separate Worker,
   `tripmyway-fulfil` (see `fulfil/README.md`): Shopify "order paid" webhook (HMAC checked) → queue →
-  `PrintConverter` container (site's trip renderer → PDF → pdftoppm → 300 ppi JPEG; canvas gets a 1.5″
-  mirrored edge in the file) → R2 `tripmyway-printfiles` → ArtBeat partner API
+  `PrintConverter` container (site's trip renderer → PDF → pdftoppm → 300 ppi JPEG; front only by
+  default, or with bleed / 1.5″ mirrored canvas edge) → R2 `tripmyway-printfiles` → ArtBeat partner API
   (`/api/partner/orders`, key `af.<vendor>.<secret>`), one line per print, never a price; status page
   `/status?token=` with "Send again". Logic in `src/lib/fulfil/` (tested), settings in
   `src/config/artbeat.ts` (product codes still empty: they come from ArtBeat's API page).
@@ -271,6 +271,16 @@ them **alongside** the existing code, without changing how single prints behave:
   deploy `npx wrangler deploy --config fulfil/wrangler.jsonc`, preview builds off, "tripmyway build
   token"), container app `tripmyway-fulfil-printconverter`. Live: https://tripmyway-fulfil.jerry-912.workers.dev
   (/health ok). The first two builds failed only at container registration (plan upgrade propagating).
+- **Manual ordering mode (built Oct 20 2026), the default until the ArtBeat API is set up:**
+  `FULFIL_MODE` var in `fulfil/wrangler.jsonc` (`"manual"` | `"api"`). Manual makes the print files
+  (no product codes needed) and the order waits on the **orders page** (`/orders`, `fulfil/src/orders-page.ts`;
+  access code = `STATUS_TOKEN`, remembered 30 days by cookie; `/status?token=` still works) with
+  step-by-step ArtBeat instructions, per-print Download / Copy details, Copy address, Open in Shopify,
+  Mark as ordered (+ ArtBeat order no.) / Undo. States `ready to order` and `ordered by hand`
+  (`fulfil/src/records.ts`). **Print file edge** (owner, Oct 20): default **front only** (exact face; ArtBeat
+  adds its own bleed/canvas wrap), `PRINT_EDGE` var / `ARTBEAT.edge`; per order "Make files again" can switch
+  to *with bleed / canvas edge* (⅛″ bleed, or 1.5″ mirrored canvas edge). File names end `-front.jpg` / `-edge.jpg`.
+  Order records now keep `_preview` and customer email.
 
 ## 6. Open decisions
 

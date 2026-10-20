@@ -6,7 +6,16 @@
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
   "vars": {
-    // "dev" until ArtBeat's live API is confirmed; then "live".
+    // "manual": make print files and wait on the orders page for someone to order
+    // on ArtBeat by hand. "api": send orders to ArtBeat's partner API automatically.
+    "FULFIL_MODE": "manual",
+    // Default print file: "front" (the printed face only; ArtBeat adds bleed and
+    // canvas edge) or "edge" (file includes bleed / 1.5" mirrored canvas edge).
+    // Each order can be remade the other way from the orders page.
+    "PRINT_EDGE": "front",
+    "SHOPIFY_ADMIN_URL": "https://admin.shopify.com/store/tripmyway-bf2kmucg",
+    "TIME_ZONE": "America/Los_Angeles",
+    // API mode only: "dev" until ArtBeat's live API is confirmed; then "live".
     "ARTBEAT_ENV": "dev",
     "PUBLIC_URL": "https://tripmyway-fulfil.jerry-912.workers.dev",
     "SUBMIT_TEST_ORDERS": "false"
