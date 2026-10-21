@@ -14,7 +14,8 @@ Worker in the same repo as the site (the site itself is unchanged by it).
 
 ## The orders page
 
-`https://tripmyway-fulfil.jerry-912.workers.dev/orders`. Enter the access code
+`https://admin.tripmyway.com` (custom domain on this Worker; the old
+`tripmyway-fulfil.jerry-912.workers.dev` address still works). Enter the access code
 (the `STATUS_TOKEN` secret) once; the browser stays signed in for 30 days. Old
 `/status?token=…` links still work and sign you in.
 
@@ -65,7 +66,7 @@ Settings: `../src/config/artbeat.ts` (product codes, ppi, file format, canvas wr
    (af.…, from ArtBeat's API page).
 5. **Shopify webhook**: Settings → Notifications → Webhooks → Create webhook →
    event *Order payment*, format JSON, URL
-   `https://tripmyway-fulfil.jerry-912.workers.dev/shopify/orders-paid`,
+   `https://admin.tripmyway.com/shopify/orders-paid`,
    latest API version. Copy the signing secret shown under the list into
    `SHOPIFY_WEBHOOK_SECRET`.
 6. *(API mode only)* **ArtBeat product presets**: on ArtBeat's API page, build one product per

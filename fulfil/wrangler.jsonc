@@ -17,7 +17,8 @@
     "TIME_ZONE": "America/Los_Angeles",
     // API mode only: "dev" until ArtBeat's live API is confirmed; then "live".
     "ARTBEAT_ENV": "dev",
-    "PUBLIC_URL": "https://tripmyway-fulfil.jerry-912.workers.dev",
+    // Where print file links point (admin.tripmyway.com is attached to this Worker).
+    "PUBLIC_URL": "https://admin.tripmyway.com",
     "SUBMIT_TEST_ORDERS": "false"
   },
   // Print converter (Node + Poppler + libvips). Built from the repo root so it

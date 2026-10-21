@@ -135,12 +135,12 @@ them **alongside** the existing code, without changing how single prints behave:
   `npx wrangler deploy`, preview builds on, own "tripmyway build token"); R2 bucket
   `tripmyway-previews`. Live at https://tripmyway.jerry-912.workers.dev (every push to
   `main` redeploys; other branches get preview links). Trip preview: `/trip/preview`.
-- **Domain (Oct 20 2026):** tripmyway.com transferred to Cloudflare (still showed GoDaddy's "for sale"
-  redirect on Oct 20: old parking DNS records to delete). To attach: Workers & Pages → `tripmyway` →
-  Settings → Domains & Routes → Add → Custom domain, `tripmyway.com` and `www.tripmyway.com` (done in the
-  dashboard, not `wrangler.jsonc`, so the build token needs no zone permissions). `src/config/site.ts` +
+- **Domain (live Oct 20 2026):** tripmyway.com on Cloudflare. Custom domains attached in the dashboard (not
+  `wrangler.jsonc`, so the build token needs no zone permissions): `tripmyway.com` + `www.tripmyway.com` on
+  Worker `tripmyway`; **`admin.tripmyway.com`** on `tripmyway-fulfil` (orders page; `PUBLIC_URL` for print file
+  links). Verified Oct 20: www → tripmyway.com/create?… in a real browser; admin /health ok. `src/config/site.ts` +
   `src/server.ts`: www → tripmyway.com (301, path kept); the workers.dev address redirects page visits too
-  once `redirectWorkersDev` is set true (only after the domain loads); /api, /photos, /previews always
+  (`redirectWorkersDev` true since Oct 20); /api, /photos, /previews always
   stay served on every host because past orders link to them; preview builds never redirect.
 - **Done (Oct 18 2026): Shopify store** `tripmyway-bf2kmucg.myshopify.com` (admin.shopify.com/store/tripmyway-bf2kmucg;
   Development plan, needs a paid plan + payments before real orders). Headless channel
@@ -275,8 +275,8 @@ them **alongside** the existing code, without changing how single prints behave:
   Cloudflare (Oct 19, Workers Paid): R2 `tripmyway-printfiles` (rule: delete `files/` after 14 days),
   queue `tripmyway-orders`, Worker `tripmyway-fulfil` via Workers Builds (root `/`, build `bun install`,
   deploy `npx wrangler deploy --config fulfil/wrangler.jsonc`, preview builds off, "tripmyway build
-  token"), container app `tripmyway-fulfil-printconverter`. Live: https://tripmyway-fulfil.jerry-912.workers.dev
-  (/health ok). The first two builds failed only at container registration (plan upgrade propagating).
+  token"), container app `tripmyway-fulfil-printconverter`. Live: https://admin.tripmyway.com (also
+  https://tripmyway-fulfil.jerry-912.workers.dev; /health ok). The first two builds failed only at container registration (plan upgrade propagating).
 - **Manual ordering mode (built Oct 20 2026), the default until the ArtBeat API is set up:**
   `FULFIL_MODE` var in `fulfil/wrangler.jsonc` (`"manual"` | `"api"`). Manual makes the print files
   (no product codes needed) and the order waits on the **orders page** (`/orders`, `fulfil/src/orders-page.ts`;

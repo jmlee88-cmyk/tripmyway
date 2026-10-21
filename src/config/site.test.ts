@@ -5,8 +5,9 @@ const go = (u: string, method = "GET") => canonicalRedirect(new URL(u), method);
 const site = SITE as { redirectWorkersDev: boolean };
 
 describe("one public address", () => {
+  const initial = site.redirectWorkersDev;
   afterEach(() => {
-    site.redirectWorkersDev = false;
+    site.redirectWorkersDev = initial;
   });
 
   it("serves tripmyway.com and sends www there, keeping path and query", () => {
@@ -18,6 +19,7 @@ describe("one public address", () => {
   });
 
   it("leaves workers.dev alone until switched on, and preview builds always", () => {
+    site.redirectWorkersDev = false;
     expect(go("https://tripmyway.jerry-912.workers.dev/journey")).toBeNull();
     site.redirectWorkersDev = true;
     expect(go("https://tripmyway.jerry-912.workers.dev/journey")).toBe(

@@ -4,14 +4,14 @@
 # account on first run (it fills in client_id).
 client_id = ""
 name = "TripMyWay Map Previews"
-application_url = "https://tripmyway.jerry-912.workers.dev"
+application_url = "https://tripmyway.com"
 embedded = false
 
 [access_scopes]
 scopes = ""
 
 [auth]
-redirect_urls = ["https://tripmyway.jerry-912.workers.dev"]
+redirect_urls = ["https://tripmyway.com"]
 
 [webhooks]
 api_version = "2026-07"

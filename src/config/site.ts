@@ -14,15 +14,15 @@ export const SITE = {
   aliasHosts: ["www.tripmyway.com"],
 
   /**
-   * The original workers.dev address. Page visits there are redirected only
-   * once this is true: turn it on after tripmyway.com is attached and loads
-   * the site, or visitors would be sent to a domain that isn't ready.
+   * The original workers.dev address. Page visits there are redirected when
+   * this is true (on since Oct 20 2026, once tripmyway.com was attached and
+   * loading the site).
    * Files and APIs (/photos, /previews, /api) keep answering there either
    * way, because orders already placed carry links to them. Preview builds
    * (other *.workers.dev hosts) are never redirected.
    */
   workersDevHost: "tripmyway.jerry-912.workers.dev",
-  redirectWorkersDev: false,
+  redirectWorkersDev: true,
 } as const;
 
 /** Paths that must keep working on every host (links stored in past orders, uploads). */
