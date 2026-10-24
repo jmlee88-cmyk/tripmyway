@@ -76,6 +76,12 @@ Cloudflare Worker (`wrangler.jsonc`), R2 for preview images.
     that scrolls to the add box and opens its search. Phones stack stops → preview → options. No inner
     scroll areas. Hover tips (frame, size bubble) use `components/trip/Steady.tsx`: every variant shares one
     grid cell so the box keeps the tallest height and nothing below it jumps.
+  - **Preview redraws (Oct 24 2026):** `TripPrintPreview` remembers the last 8 drawn previews (instant when a
+    design/size comes back) and, when only the size changes to one of the same shape (12×18 / 24×36 / 32×48
+    are all 2:3), keeps the current preview showing (no dimming, no "Drawing…") and swaps the redraw in when
+    ready. A redraw is still needed: the map is identical within a shape (framed on DESIGN_WIDTH), but
+    markers/labels are sized in inches, so photo spots can move a little, and photo crops are capped per size.
+    `PdfPagePreview` draws off-screen and copies in, so swaps never flash blank.
   - **Finish order (Oct 24 2026):** Metal, Acrylic, Canvas, Paper (order of `PRINT_FINISHES`; default
     finish is still paper via `DEFAULT_FINISH`).
   - "Show empty photo spots" switch: the grey circles are preview-only (never printed); turning

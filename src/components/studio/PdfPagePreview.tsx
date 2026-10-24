@@ -42,10 +42,16 @@ export function PdfPagePreview({
         const base = page.getViewport({ scale: 1 });
         const dpr = window.devicePixelRatio || 1;
         const viewport = page.getViewport({ scale: (width / base.width) * dpr });
+        // Draw off-screen, then copy in one step, so replacing a page never flashes blank.
+        const off = document.createElement("canvas");
+        off.width = Math.round(viewport.width);
+        off.height = Math.round(viewport.height);
+        await page.render({ canvasContext: off.getContext("2d")!, viewport }).promise;
         const canvas = canvasRef.current;
-        canvas.width = Math.round(viewport.width);
-        canvas.height = Math.round(viewport.height);
-        await page.render({ canvasContext: canvas.getContext("2d")!, viewport }).promise;
+        if (cancelled || !canvas) return;
+        canvas.width = off.width;
+        canvas.height = off.height;
+        canvas.getContext("2d")!.drawImage(off, 0, 0);
         setError(null);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
