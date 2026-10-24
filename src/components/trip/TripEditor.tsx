@@ -1,14 +1,16 @@
 import { useNavigate } from "@tanstack/react-router";
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type Dispatch,
   type ReactNode,
   type SetStateAction,
 } from "react";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, CircleHelp, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CircleHelp, Lightbulb, X } from "lucide-react";
 import type { FrameColor, Location, PrintFinish, PrintSizeId } from "@/types/product";
 import type { TripDesign, TripPhoto, TripStop } from "@/types/trip";
 import { DEFAULT_STYLE_ID } from "@/config/map-styles";
@@ -22,6 +24,7 @@ import {
   framePrice,
   getPrintSize,
 } from "@/config/products";
+import { FINISH_TIPS, FRAME_TIPS, NO_FRAME_TIPS } from "@/config/guides";
 import { JOURNEY } from "@/config/journey";
 import { TRIP } from "@/config/trip";
 import { plansBySize } from "@/lib/trip/plan";
@@ -32,6 +35,7 @@ import { track } from "@/lib/analytics";
 import { LocationSearch } from "@/components/editor/LocationSearch";
 import { TripPhotoField } from "@/components/trip/TripPhotoField";
 import { TripPrintPreview } from "@/components/trip/TripPrintPreview";
+import { SizeGuideBubble } from "@/components/trip/SizeGuide";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { startTripTour, tourSeen } from "./trip-tour";
@@ -85,6 +89,26 @@ export function TripEditor({
   const [printSize, setPrintSize] = useState<PrintSizeId>("18x24");
   const [finish, setFinish] = useState<PrintFinish>("paper");
   const [frame, setFrame] = useState<FrameColor>("none");
+  // What the customer is pointing at while deciding, for the size and frame tips.
+  const [sizeHover, setSizeHover] = useState<PrintSizeId | null>(null);
+  const [frameHover, setFrameHover] = useState<FrameColor | null>(null);
+  const sizeGrid = useRef<HTMLDivElement>(null);
+  const [sizeAnchor, setSizeAnchor] = useState<number | null>(null);
+  const sizeShown = sizeHover ?? printSize;
+  // Point the size bubble at the button it describes (columns change with width).
+  useLayoutEffect(() => {
+    const place = () => {
+      const grid = sizeGrid.current;
+      const btn = grid?.querySelector<HTMLElement>(`[data-size="${sizeShown}"]`);
+      if (!grid || !btn) return setSizeAnchor(null);
+      const g = grid.getBoundingClientRect();
+      const b = btn.getBoundingClientRect();
+      setSizeAnchor(b.left - g.left + b.width / 2);
+    };
+    place();
+    window.addEventListener("resize", place);
+    return () => window.removeEventListener("resize", place);
+  }, [sizeShown]);
   const [stripPrints, setStripPrints] = useState<number[]>([]);
   const [showErrors, setShowErrors] = useState(false);
   // Empty photo spots in the preview (never printed); the customer can hide them.
@@ -434,7 +458,7 @@ export function TripEditor({
         <div data-tour="order">
           <fieldset className="mt-8">
             <legend className="font-display text-lg font-bold">Size</legend>
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <div ref={sizeGrid} className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {PRINT_SIZES.map((s) => {
                 const blocked = stops.some((d) => d.photo && photoTooSmall(d.photo, s.id));
                 const n = printsAt(s.id);
@@ -442,11 +466,16 @@ export function TripEditor({
                 return (
                   <button
                     key={s.id}
+                    data-size={s.id}
                     type="button"
                     aria-pressed={on}
                     disabled={blocked}
                     title={blocked ? "A photo is too small for this size" : undefined}
                     onClick={() => setPrintSize(s.id)}
+                    onMouseEnter={() => setSizeHover(s.id)}
+                    onMouseLeave={() => setSizeHover(null)}
+                    onFocus={() => setSizeHover(s.id)}
+                    onBlur={() => setSizeHover(null)}
                     className={`rounded-xl border-2 px-3 py-2.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${on ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/50"}`}
                   >
                     <span className="block text-sm font-semibold">{s.label} in</span>
@@ -461,6 +490,12 @@ export function TripEditor({
                 );
               })}
             </div>
+            <SizeGuideBubble
+              sizeId={sizeShown}
+              prints={printsAt(sizeShown)}
+              previewing={sizeShown !== printSize}
+              anchorX={sizeAnchor}
+            />
           </fieldset>
 
           <fieldset className="mt-6">
@@ -481,10 +516,20 @@ export function TripEditor({
             <p className="mt-2 text-sm text-muted-foreground">
               {PRINT_FINISHES.find((f) => f.id === finish)?.description}
             </p>
+            <ProTip>{FINISH_TIPS[finish]}</ProTip>
           </fieldset>
 
           <fieldset className="mt-6">
-            <legend className="font-display text-lg font-bold">Frame</legend>
+            <legend className="flex w-full flex-wrap items-baseline justify-between gap-x-3">
+              <span className="font-display text-lg font-bold">Frame</span>
+              <span className="text-sm text-muted-foreground">
+                {frameStyle.label}{" "}
+                <span className="font-semibold text-foreground">
+                  +${framePrice(printSize, finish) * prints}
+                </span>{" "}
+                at {size.label} in{prints > 1 ? ` (set of ${prints})` : ""}
+              </span>
+            </legend>
             <div className="mt-3 flex flex-wrap gap-2">
               {(["none", ...frameStyle.colors] as FrameColor[]).map((c) => (
                 <button
@@ -492,17 +537,32 @@ export function TripEditor({
                   type="button"
                   aria-pressed={c === frameNow}
                   onClick={() => setFrame(c)}
+                  onMouseEnter={() => setFrameHover(c)}
+                  onMouseLeave={() => setFrameHover(null)}
+                  onFocus={() => setFrameHover(c)}
+                  onBlur={() => setFrameHover(null)}
                   className={`rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors ${c === frameNow ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/50"}`}
                 >
                   {FRAME_COLOR_LABELS[c]}
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {frameNow === "none"
-                ? `${frameStyle.label}: +$${framePrice(printSize, finish) * prints} at ${size.label} in.`
-                : frameStyle.description}
-            </p>
+            {(() => {
+              const shown = frameHover ?? frameNow;
+              return (
+                <ProTip>
+                  {shown === "none" ? (
+                    NO_FRAME_TIPS[finish]
+                  ) : (
+                    <>
+                      <b className="font-semibold">{FRAME_COLOR_LABELS[shown]}:</b>{" "}
+                      {FRAME_TIPS[shown]}{" "}
+                      <span className="text-muted-foreground">{frameStyle.description}</span>
+                    </>
+                  )}
+                </ProTip>
+              );
+            })()}
           </fieldset>
 
           <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t-2 border-border pt-6">
@@ -579,5 +639,18 @@ function ChangePlace({ onSelect }: { onSelect: (l: Location) => void }) {
         setOpen(false);
       }}
     />
+  );
+}
+
+/** A short tip under a choice, marked with a bulb. */
+function ProTip({ children }: { children: ReactNode }) {
+  return (
+    <p className="mt-2 flex gap-2 rounded-xl bg-land/50 px-3 py-2 text-sm leading-snug">
+      <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-ochre" aria-hidden />
+      <span>
+        <span className="font-semibold">Pro tip: </span>
+        {children}
+      </span>
+    </p>
   );
 }

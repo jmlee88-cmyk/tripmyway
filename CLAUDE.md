@@ -64,6 +64,12 @@ Cloudflare Worker (`wrangler.jsonc`), R2 for preview images.
     A "start" tour (trip name, add stop, preview) on a first visit and a "stop" tour (rename, date,
     photo, reorder, empty photo spots, order options) once a stop exists; each once per browser,
     replayable with "Show me how". Steps target `data-tour` attributes.
+  - **Choosing guidance (Oct 24 2026):** copy in `src/config/guides.ts`. Size: a bubble under the size
+    buttons (`components/trip/SizeGuide.tsx`) for the hovered/focused size, else the selected one, with what
+    it's good for, placement, viewing distance, set width, and a to-scale sketch above an 84″ sofa; its
+    pointer follows the button. Finish: "Pro tip" with what each finish is ideal for. Frame: the add-on
+    price sits beside the Frame heading ("Box frame +$85 at 18 × 24 in"); the sub-text is a pro tip for
+    the hovered/selected colour (or what no frame means for that finish) plus the frame's construction.
   - "Show empty photo spots" switch: the grey circles are preview-only (never printed); turning
     them off shows exactly what prints.
   - **Naming (decided Oct 18 2026):** one place = a **Location map** (chip above the preview, cart
