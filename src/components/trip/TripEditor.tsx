@@ -133,10 +133,30 @@ export function TripEditor({
       return next;
     });
   const remove = (i: number) => setStops((ds) => ds.filter((_, j) => j !== i));
+
+  // Wide screens: the stops column stays in view (and scrolls on its own) while the
+  // page scrolls through the print options. After a new stop, the page comes back
+  // up to the preview and the column shows the next "add a stop" box.
+  const plannerCol = useRef<HTMLDivElement>(null);
+  const previewTop = useRef<HTMLDivElement>(null);
+  const justAdded = useRef(false);
+  const wide = () =>
+    typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches;
   const add = (l: Location) => {
+    justAdded.current = true;
     setStops((ds) => (ds.length < TRIP.maxStops ? [...ds, stopFromLocation(l)] : ds));
     track("trip_stop_added");
   };
+  useEffect(() => {
+    if (!justAdded.current) return;
+    justAdded.current = false;
+    if (!wide()) return;
+    const col = plannerCol.current;
+    if (col) col.scrollTo({ top: col.scrollHeight, behavior: "smooth" });
+    const top = previewTop.current?.getBoundingClientRect().top;
+    if (top != null && top < 100)
+      window.scrollTo({ top: window.scrollY + top - 100, behavior: "smooth" });
+  }, [stops.length]);
 
   const frameStyle = FRAME_STYLES[finish];
   const frameNow: FrameColor =
@@ -211,7 +231,10 @@ export function TripEditor({
 
   return (
     <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
-      <div className="min-w-0">
+      <div
+        ref={plannerCol}
+        className="relative min-w-0 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7.5rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain lg:pr-3 lg:[scrollbar-width:thin]"
+      >
         <div className="flex items-center justify-between gap-4">
           <span className="eyebrow">Trip name</span>
           <button
@@ -327,7 +350,7 @@ export function TripEditor({
           ))}
           {stops.length < TRIP.maxStops ? (
             <li
-              className="rounded-2xl border-2 border-dashed border-border p-4 md:p-5"
+              className="rounded-2xl border-2 border-dashed border-border bg-background p-4 md:p-5 lg:sticky lg:bottom-0 lg:z-10 lg:shadow-[0_-14px_18px_-6px_var(--background)]"
               data-tour="add-stop"
             >
               <div className="flex items-start gap-3">
@@ -353,6 +376,7 @@ export function TripEditor({
                       value={null}
                       placeholder="Search a city, town, park or landmark"
                       onSelect={add}
+                      upOnWide
                     />
                   </div>
                 </div>
@@ -366,7 +390,7 @@ export function TripEditor({
         </ol>
       </div>
 
-      <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+      <div ref={previewTop} className="min-w-0 scroll-mt-24">
         {design && (
           <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
             <span className="rounded-full bg-pin px-3 py-1 text-ink">

@@ -70,6 +70,12 @@ Cloudflare Worker (`wrangler.jsonc`), R2 for preview images.
     pointer follows the button. Finish: "Pro tip" with what each finish is ideal for. Frame: the add-on
     price sits beside the Frame heading ("Box frame +$85 at 18 × 24 in"); the sub-text is a pro tip for
     the hovered/selected colour (or what no frame means for that finish) plus the frame's construction.
+  - **Planner stays put (Oct 24 2026), wide screens only:** the stops column is sticky with its own scroll
+    (the preview/options column scrolls with the page); the "add a stop" box is pinned to the bottom of that
+    column and its search results open upward (`LocationSearch upOnWide`). After a stop is added the page
+    scrolls back up to the preview and the column scrolls to the new stop. Phones keep the stacked layout.
+  - **Finish order (Oct 24 2026):** Metal, Acrylic, Canvas, Paper (order of `PRINT_FINISHES`; default
+    finish is still paper via `DEFAULT_FINISH`).
   - "Show empty photo spots" switch: the grey circles are preview-only (never printed); turning
     them off shows exactly what prints.
   - **Naming (decided Oct 18 2026):** one place = a **Location map** (chip above the preview, cart

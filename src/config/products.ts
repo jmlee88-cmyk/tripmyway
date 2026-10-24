@@ -28,11 +28,12 @@ export interface FinishOption {
   description: string;
 }
 
+/** Shown in this order (owner, Oct 24 2026): metal, acrylic, canvas, paper. */
 export const PRINT_FINISHES: FinishOption[] = [
-  { id: "paper", label: "Fine art paper", short: "Paper", description: "Museum-grade matte paper with a soft, velvety finish. Ready for your own frame." },
-  { id: "canvas", label: "Canvas", short: "Canvas", description: "Gallery-wrapped on a 1.5\" wooden frame, with the map's edges mirrored around the sides. Ready to hang." },
   { id: "metal", label: "Metal", short: "Metal", description: "Printed into a sheet of aluminium for crisp lines and a luminous sheen. Floats off the wall on a hidden mount." },
   { id: "acrylic", label: "Acrylic", short: "Acrylic", description: "Face-mounted behind a thick block of clear acrylic for deep, glossy colour. Hangs on a hidden mount." },
+  { id: "canvas", label: "Canvas", short: "Canvas", description: "Gallery-wrapped on a 1.5\" wooden frame, with the map's edges mirrored around the sides. Ready to hang." },
+  { id: "paper", label: "Fine art paper", short: "Paper", description: "Museum-grade matte paper with a soft, velvety finish. Ready for your own frame." },
 ];
 
 export const DEFAULT_FINISH: PrintFinish = "paper";
@@ -41,7 +42,7 @@ export const DEFAULT_FINISH: PrintFinish = "paper";
 export const CANVAS_WRAP_IN = 1.5;
 
 export function getFinish(id: PrintFinish | undefined): FinishOption {
-  return PRINT_FINISHES.find((f) => f.id === id) ?? PRINT_FINISHES[0]!;
+  return PRINT_FINISHES.find((f) => f.id === id) ?? PRINT_FINISHES.find((f) => f.id === DEFAULT_FINISH)!;
 }
 
 /**
