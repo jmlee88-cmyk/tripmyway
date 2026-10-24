@@ -10,7 +10,7 @@ import {
   type SetStateAction,
 } from "react";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, CircleHelp, Lightbulb, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CircleHelp, Lightbulb, Plus, X } from "lucide-react";
 import type { FrameColor, Location, PrintFinish, PrintSizeId } from "@/types/product";
 import type { TripDesign, TripPhoto, TripStop } from "@/types/trip";
 import { DEFAULT_STYLE_ID } from "@/config/map-styles";
@@ -36,6 +36,7 @@ import { LocationSearch } from "@/components/editor/LocationSearch";
 import { TripPhotoField } from "@/components/trip/TripPhotoField";
 import { TripPrintPreview } from "@/components/trip/TripPrintPreview";
 import { SizeGuideBubble } from "@/components/trip/SizeGuide";
+import { Steady } from "@/components/trip/Steady";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { startTripTour, tourSeen } from "./trip-tour";
@@ -134,29 +135,18 @@ export function TripEditor({
     });
   const remove = (i: number) => setStops((ds) => ds.filter((_, j) => j !== i));
 
-  // Wide screens: the stops column stays in view (and scrolls on its own) while the
-  // page scrolls through the print options. After a new stop, the page comes back
-  // up to the preview and the column shows the next "add a stop" box.
-  const plannerCol = useRef<HTMLDivElement>(null);
-  const previewTop = useRef<HTMLDivElement>(null);
-  const justAdded = useRef(false);
-  const wide = () =>
-    typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches;
   const add = (l: Location) => {
-    justAdded.current = true;
     setStops((ds) => (ds.length < TRIP.maxStops ? [...ds, stopFromLocation(l)] : ds));
     track("trip_stop_added");
   };
-  useEffect(() => {
-    if (!justAdded.current) return;
-    justAdded.current = false;
-    if (!wide()) return;
-    const col = plannerCol.current;
-    if (col) col.scrollTo({ top: col.scrollHeight, behavior: "smooth" });
-    const top = previewTop.current?.getBoundingClientRect().top;
-    if (top != null && top < 100)
-      window.scrollTo({ top: window.scrollY + top - 100, behavior: "smooth" });
-  }, [stops.length]);
+  // "+ Add a stop" beside the pinned preview: bring the add box into view and open its search.
+  const addStopBox = useRef<HTMLLIElement>(null);
+  const goToAddStop = () => {
+    const box = addStopBox.current;
+    if (!box) return;
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+    box.querySelector("input")?.focus({ preventScroll: true });
+  };
 
   const frameStyle = FRAME_STYLES[finish];
   const frameNow: FrameColor =
@@ -230,11 +220,10 @@ export function TripEditor({
   }
 
   return (
-    <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
-      <div
-        ref={plannerCol}
-        className="relative min-w-0 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7.5rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain lg:pr-3 lg:[scrollbar-width:thin]"
-      >
+    // Phones: stops, preview, print options, one after another. Wide screens: stops
+    // and print options on the left, the preview pinned on the right while they scroll.
+    <div className="grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:grid-rows-[auto_1fr]">
+      <div className="min-w-0 lg:col-start-1 lg:row-start-1">
         <div className="flex items-center justify-between gap-4">
           <span className="eyebrow">Trip name</span>
           <button
@@ -271,7 +260,10 @@ export function TripEditor({
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <label className="min-w-0 flex-1" data-tour={i === 0 ? "stop-name" : undefined}>
+                    <label
+                      className="min-w-[10rem] flex-1"
+                      data-tour={i === 0 ? "stop-name" : undefined}
+                    >
                       <span className="sr-only">Stop {i + 1} name</span>
                       <input
                         id={`stop-${i}-label`}
@@ -350,7 +342,8 @@ export function TripEditor({
           ))}
           {stops.length < TRIP.maxStops ? (
             <li
-              className="rounded-2xl border-2 border-dashed border-border bg-background p-4 md:p-5 lg:sticky lg:bottom-0 lg:z-10 lg:shadow-[0_-14px_18px_-6px_var(--background)]"
+              ref={addStopBox}
+              className="scroll-mt-28 rounded-2xl border-2 border-dashed border-border p-4 md:p-5"
               data-tour="add-stop"
             >
               <div className="flex items-start gap-3">
@@ -376,7 +369,6 @@ export function TripEditor({
                       value={null}
                       placeholder="Search a city, town, park or landmark"
                       onSelect={add}
-                      upOnWide
                     />
                   </div>
                 </div>
@@ -390,9 +382,9 @@ export function TripEditor({
         </ol>
       </div>
 
-      <div ref={previewTop} className="min-w-0 scroll-mt-24">
+      <div className="min-w-0 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
         {design && (
-          <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
+          <p className="mb-3 flex flex-wrap items-center gap-2 text-sm font-semibold">
             <span className="rounded-full bg-pin px-3 py-1 text-ink">
               {design.stops.length === 1 ? "Location map" : "Trip map"}
             </span>
@@ -401,17 +393,31 @@ export function TripEditor({
                 ? "One place"
                 : `${design.stops.length} stops${prints > 1 ? `, set of ${prints} prints` : ""}`}
             </span>
+            {stops.length < TRIP.maxStops && (
+              <button
+                type="button"
+                onClick={goToAddStop}
+                className="ml-auto hidden items-center gap-1 rounded-full border-2 border-border px-3 py-1 text-sm font-semibold transition-colors hover:border-foreground/50 lg:inline-flex"
+              >
+                <Plus className="h-4 w-4" aria-hidden />
+                Add a stop
+              </button>
+            )}
           </p>
         )}
         <div className="rounded-[22px] bg-stage p-4 sm:p-6" data-tour="preview">
           {previewDesign ? (
-            <TripPrintPreview
-              design={previewDesign}
-              placeholders={showSpots}
-              onRendered={(r) =>
-                setStripPrints(r.placements.flatMap((p, k) => (p.mode === "strip" ? [k + 1] : [])))
-              }
-            />
+            <div className="mx-auto w-full lg:max-w-[max(260px,calc((100dvh-21rem)*0.75))]">
+              <TripPrintPreview
+                design={previewDesign}
+                placeholders={showSpots}
+                onRendered={(r) =>
+                  setStripPrints(
+                    r.placements.flatMap((p, k) => (p.mode === "strip" ? [k + 1] : [])),
+                  )
+                }
+              />
+            </div>
           ) : (
             <div className="grid aspect-[3/4] place-items-center rounded-xl border-2 border-dashed border-foreground/15 p-8 text-center text-muted-foreground">
               {stops.some((d) => d.lookup === "pending")
@@ -478,9 +484,11 @@ export function TripEditor({
             )}
           </div>
         )}
+      </div>
 
-        <div data-tour="order">
-          <fieldset className="mt-8">
+      <div className="min-w-0 lg:col-start-1 lg:row-start-2">
+        <div data-tour="order" className="border-t-2 border-border pt-2 lg:pt-0 lg:border-t-0">
+          <fieldset className="mt-6 lg:mt-0">
             <legend className="font-display text-lg font-bold">Size</legend>
             <div ref={sizeGrid} className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {PRINT_SIZES.map((s) => {
@@ -516,7 +524,7 @@ export function TripEditor({
             </div>
             <SizeGuideBubble
               sizeId={sizeShown}
-              prints={printsAt(sizeShown)}
+              printsAt={printsAt}
               previewing={sizeShown !== printSize}
               anchorX={sizeAnchor}
             />
@@ -540,7 +548,10 @@ export function TripEditor({
             <p className="mt-2 text-sm text-muted-foreground">
               {PRINT_FINISHES.find((f) => f.id === finish)?.description}
             </p>
-            <ProTip>{FINISH_TIPS[finish]}</ProTip>
+            <ProTip>
+              <TipLabel />
+              {FINISH_TIPS[finish]}
+            </ProTip>
           </fieldset>
 
           <fieldset className="mt-6">
@@ -571,22 +582,27 @@ export function TripEditor({
                 </button>
               ))}
             </div>
-            {(() => {
-              const shown = frameHover ?? frameNow;
-              return (
-                <ProTip>
-                  {shown === "none" ? (
-                    NO_FRAME_TIPS[finish]
-                  ) : (
-                    <>
-                      <b className="font-semibold">{FRAME_COLOR_LABELS[shown]}:</b>{" "}
-                      {FRAME_TIPS[shown]}{" "}
-                      <span className="text-muted-foreground">{frameStyle.description}</span>
-                    </>
-                  )}
-                </ProTip>
-              );
-            })()}
+            <ProTip>
+              <Steady
+                active={frameHover ?? frameNow}
+                variants={(["none", ...frameStyle.colors] as FrameColor[]).map((c) => ({
+                  key: c,
+                  node:
+                    c === "none" ? (
+                      <>
+                        <TipLabel />
+                        {NO_FRAME_TIPS[finish]}
+                      </>
+                    ) : (
+                      <>
+                        <TipLabel />
+                        <b className="font-semibold">{FRAME_COLOR_LABELS[c]}:</b> {FRAME_TIPS[c]}{" "}
+                        <span className="text-muted-foreground">{frameStyle.description}</span>
+                      </>
+                    ),
+                }))}
+              />
+            </ProTip>
           </fieldset>
 
           <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t-2 border-border pt-6">
@@ -666,15 +682,16 @@ function ChangePlace({ onSelect }: { onSelect: (l: Location) => void }) {
   );
 }
 
-/** A short tip under a choice, marked with a bulb. */
+/** A short tip under a choice, marked with a bulb. Children start with <TipLabel />. */
 function ProTip({ children }: { children: ReactNode }) {
   return (
     <p className="mt-2 flex gap-2 rounded-xl bg-land/50 px-3 py-2 text-sm leading-snug">
       <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-ochre" aria-hidden />
-      <span>
-        <span className="font-semibold">Pro tip: </span>
-        {children}
-      </span>
+      <span className="min-w-0 flex-1">{children}</span>
     </p>
   );
+}
+
+function TipLabel() {
+  return <span className="font-semibold">Pro tip: </span>;
 }

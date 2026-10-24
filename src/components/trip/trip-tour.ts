@@ -100,8 +100,8 @@ const STEPS: Record<TourKind, (DriveStep & { element: string })[]> = {
       popover: {
         title: "Size, finish and frame",
         description:
-          "Pick these when you're happy with your stops, then add the print to your cart.",
-        side: "left",
+          "Pick these under your stops when you're happy with them, then add the print to your cart.",
+        side: "top",
       },
     },
   ],

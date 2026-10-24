@@ -1,6 +1,7 @@
 import { Lightbulb } from "lucide-react";
 import type { PrintSizeId } from "@/types/product";
-import { getPrintSize } from "@/config/products";
+import { PRINT_SIZES, getPrintSize } from "@/config/products";
+import { Steady } from "./Steady";
 import { SCALE_SOFA, SET_GAP_IN, SIZE_GUIDES, wallWidthIn } from "@/config/guides";
 
 /**
@@ -21,7 +22,8 @@ function ScaleSketch({ sizeId, prints }: { sizeId: PrintSizeId; prints: number }
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      className="h-auto w-full max-w-[220px]"
+      preserveAspectRatio="xMidYMax meet"
+      className="h-full w-full"
       role="img"
       aria-label={`${s.label} inch print${prints > 1 ? ` set of ${prints}` : ""} drawn to scale above an ${sofa.widthIn} inch sofa`}
     >
@@ -74,20 +76,44 @@ function ScaleSketch({ sizeId, prints }: { sizeId: PrintSizeId; prints: number }
  */
 export function SizeGuideBubble({
   sizeId,
-  prints,
+  printsAt,
   previewing,
   anchorX,
 }: {
   sizeId: PrintSizeId;
-  prints: number;
+  /** How many prints the trip needs at each size (a set when it splits). */
+  printsAt: (id: PrintSizeId) => number;
   /** True while the customer is hovering or focusing a size they haven't picked. */
   previewing: boolean;
   /** Pixels from the bubble's left edge to the size button it describes. */
   anchorX?: number | null;
 }) {
-  const s = getPrintSize(sizeId);
-  const g = SIZE_GUIDES[sizeId];
-  const span = wallWidthIn(sizeId, prints);
+  const text = (id: PrintSizeId) => {
+    const s = getPrintSize(id);
+    const g = SIZE_GUIDES[id];
+    const prints = printsAt(id);
+    return (
+      <>
+        <p className="flex items-center gap-1.5 text-sm font-bold">
+          <Lightbulb className="h-4 w-4 shrink-0 text-ochre" aria-hidden />
+          {s.label} in{prints > 1 ? `, set of ${prints}` : ""}
+          {previewing && id === sizeId ? (
+            <span className="font-normal text-muted-foreground"> · previewing</span>
+          ) : null}
+        </p>
+        <p className="mt-1.5 text-sm">{g.goodFor}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {g.placement} {g.viewing}
+        </p>
+        {prints > 1 ? (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Hung side by side with {SET_GAP_IN}″ gaps, the set is about {wallWidthIn(id, prints)}″
+            wide and {s.heightIn}″ tall.
+          </p>
+        ) : null}
+      </>
+    );
+  };
   return (
     <div
       role="note"
@@ -97,30 +123,19 @@ export function SizeGuideBubble({
       <span
         aria-hidden
         style={{ left: `${anchorX ?? 32}px` }}
-        className="absolute -top-[7px] -translate-x-1/2 transition-[left] duration-150 h-3 w-3 rotate-45 border-l border-t border-foreground/10 bg-[color-mix(in_srgb,var(--sea)_60%,var(--background))]"
+        className="absolute -top-[7px] h-3 w-3 -translate-x-1/2 rotate-45 border-l border-t border-foreground/10 bg-[color-mix(in_srgb,var(--sea)_60%,var(--background))] transition-[left] duration-150"
       />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-1.5 text-sm font-bold">
-            <Lightbulb className="h-4 w-4 shrink-0 text-ochre" aria-hidden />
-            {s.label} in{prints > 1 ? `, set of ${prints}` : ""}
-            {previewing ? (
-              <span className="font-normal text-muted-foreground"> · previewing</span>
-            ) : null}
-          </p>
-          <p className="mt-1.5 text-sm">{g.goodFor}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {g.placement} {g.viewing}
-          </p>
-          {prints > 1 ? (
-            <p className="mt-1 text-sm text-muted-foreground">
-              Hung side by side with {SET_GAP_IN}″ gaps, the set is about {span}″ wide and{" "}
-              {s.heightIn}″ tall.
-            </p>
-          ) : null}
+          <Steady
+            active={sizeId}
+            variants={PRINT_SIZES.map((s) => ({ key: s.id, node: text(s.id) }))}
+          />
         </div>
         <figure className="shrink-0 sm:w-[190px]">
-          <ScaleSketch sizeId={sizeId} prints={prints} />
+          <div className="h-[120px]">
+            <ScaleSketch sizeId={sizeId} prints={printsAt(sizeId)} />
+          </div>
           <figcaption className="mt-1 text-[11px] text-muted-foreground">
             To scale above an {SCALE_SOFA.widthIn}″ sofa
           </figcaption>
