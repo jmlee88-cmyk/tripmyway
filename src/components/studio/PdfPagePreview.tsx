@@ -61,7 +61,7 @@ export function PdfPagePreview({
     return (
       <div
         className="flex items-center justify-center p-4 text-center text-xs text-destructive"
-        style={{ width, height }}
+        style={{ width, maxWidth: "100%", aspectRatio: `${width} / ${height}` }}
       >
         Couldn't display the PDF: {error}
       </div>
@@ -70,7 +70,9 @@ export function PdfPagePreview({
   return (
     <canvas
       ref={canvasRef}
-      style={{ width, height }}
+      // Shown at `width` px, but never wider than its box; the height follows the
+      // page's proportions so a narrower box never squashes the print.
+      style={{ width, maxWidth: "100%", height: "auto", aspectRatio: `${width} / ${height}` }}
       className={className}
       aria-label="Generated print PDF, page 1"
       role="img"
